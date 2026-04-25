@@ -1,54 +1,70 @@
-// ===== START: createページ =====
-
-// ===== START: フォーム入力UI =====
-
 "use client";
 
 import { useState } from "react";
 
+// ===== START: CreatePage =====
 export default function CreatePage() {
-  // フォーム名
   const [title, setTitle] = useState("");
-
-  // 説明
   const [description, setDescription] = useState("");
+
+  const handleSubmit = async () => {
+    try {
+      const res = await fetch("http://localhost/no-code-api/save.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title,
+          description,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.status === "success") {
+        alert("保存成功");
+
+        setTitle("")
+        setDescription("")
+
+        console.log(data);
+      } else {
+        alert("失敗");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("通信エラー");
+    }
+  };
 
   return (
     <main style={{ padding: "20px", fontFamily: "sans-serif" }}>
-
       <h1>フォーム作成</h1>
 
-      {/* フォーム名を入力 */}
-      <div style={{ marginBottom: "10px" }}>
-        <label>フォーム名</label><br />
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          style={{ width: "300px", padding: "5px" }}
-        />
-      </div>
+      <input
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="フォーム名"
+        style={{ display: "block", marginBottom: "10px" }}
+      />
 
-      {/* 説明入力 */}
-      <div style={{ marginBottom: "10px" }}>
-        <label>説明</label>
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          style={{ width: "300px", height: "100px", padding: "5px" }}
-        />
-      </div>
+      <textarea
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        placeholder="説明"
+        style={{ display: "block", marginBottom: "10px" }}
+      />
+
+      <button onClick={handleSubmit}>
+        保存
+      </button>
 
       <hr />
 
-      {/* 入力確認（デバッグ用） */}
-      <h2>入力内容確認</h2>
-      <p>フォーム名：{title}</p>
-      <p>説明：{description}</p>
-
-      <p>ここでフォームを作成します（未実装）</p>
+      <p>フォーム名: {title}</p>
+      <p>説明: {description}</p>
     </main>
   );
 }
-
-// ===== END: createページ =====
+// ===== END: CreatePage =====
