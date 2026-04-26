@@ -7,7 +7,7 @@ header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
 
 // 保存ファイル
-$file =~ "data.json";
+$file = "data.json";
 
 $list = [];
 
