@@ -1,11 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+// ===== 型定義 =====
+type FormData = {
+  title: string;
+  description: string;
+}
+
+type SaveResponse = {
+  status: string;
+  title: string;
+  description: string;
+}
 
 // ===== START: CreatePage =====
 export default function CreatePage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [list, setList] = useState<FormData[]>([]);
+
+  useEffect(() => {
+    fetch("http://localhost/no-code-api/list.php")
+      .then((res) => res.json())
+      .then((data: FormData[]) => {
+        setList(data);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }, []);
 
   const handleSubmit = async () => {
     try {
@@ -20,15 +44,24 @@ export default function CreatePage() {
         }),
       });
 
-      const data = await res.json();
+      // ★型を付ける
+      const data: SaveResponse = await res.json();
 
       if (data.status === "success") {
         alert("保存成功");
 
-        setTitle("")
-        setDescription("")
+        // 一覧に追加
+        setList((prev) => [
+          ...prev,
+          {
+            title: data.title,
+            description: data.description,
+          },
+        ]);
 
-        console.log(data);
+        // 入力クリア
+        setTitle("");
+        setDescription("");
       } else {
         alert("失敗");
       }
@@ -56,14 +89,34 @@ export default function CreatePage() {
         style={{ display: "block", marginBottom: "10px" }}
       />
 
-      <button onClick={handleSubmit}>
-        保存
-      </button>
+      <button onClick={handleSubmit}>保存</button>
 
       <hr />
 
-      <p>フォーム名: {title}</p>
-      <p>説明: {description}</p>
+      {/* ★★ 一覧表示 */}
+      <h2>保存一覧</h2>
+
+      {list.length === 0 ? (
+        <p>まだデータがありません</p>
+      ) : (
+        list.map((item, index) => (
+          <div
+            key={index}
+            style={{
+              border: "1px solid #ccc",
+              padding: "10px",
+              marginBottom: "10px",
+            }}
+          >
+            <p>
+              <strong>フォーム名：</strong> {item.title}
+            </p>
+            <p>
+              <strong>説明:</strong> {item.description}
+            </p>
+          </div>
+        ))
+      )}
     </main>
   );
 }
