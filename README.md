@@ -1,40 +1,89 @@
-<<<<<<< HEAD
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 進捗レポート（2026/04/26）
 
-## Getting Started
+## ■ プロジェクト概要
+ノーコードでフォームを作成し、
+入力・保存・一覧・CSV出力まで行える業務支援ツールを開発中
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## ■ 技術構成
+フロント：Next.js / React / TypeScript  
+バックエンド：PHP（XAMPP）  
+データ保存：JSON（data.json）※後にSQLite予定  
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## ■ 完了機能
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 【フロント】
+・/createページ作成  
+・フォーム入力UI（title / description）  
+・useStateによる状態管理  
+・fetchによるPOST送信  
+・APIレスポンスによる分岐処理  
+・エラーメッセージ表示対応  
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+### 【バックエンド】
+・save.php（データ保存API）
+  - JSON受信
+  - CORS対応
+  - OPTIONS対応
+  - バリデーション（未入力チェック）
+  - data.jsonへの保存
+  - エラーハンドリング
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+・list.php（一覧取得API）
+  - data.json読み込み
+  - JSON返却
+  - エラー耐性あり
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+### 【データ】
+・data.jsonへの永続化成功  
+・追記形式で保存  
+・日本語対応（UTF-8）  
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-=======
-# Portfolio
->>>>>>> be76695fd7007b8eaf29ca507cf12dde02c3c798
+## ■ 技術的に重要な学習ポイント
+
+・CORSの理解  
+・fetch + JSON通信の流れ  
+・PHPでのJSON処理  
+・バリデーション（入力チェック）  
+・エラー原因特定（Unexpected token <）  
+・PHP WarningがJSONを壊す問題  
+・防御的プログラミング（初期化・型チェック）  
+
+---
+
+## ■ 現在の状態
+
+フォーム入力 → API送信 → 保存 → レスポンス → 表示  
+の一連の流れが完成
+
+→ 「動くアプリ」として成立
+
+---
+
+## ■ 未実装（次工程）
+
+① 一覧表示（画面への反映）  
+② CSV出力機能  
+③ SQLite化（DB化）  
+
+---
+
+## ■ 完成度
+
+約 60〜70%
+
+---
+
+## ■ 次の予定
+
+一覧表示 → CSV出力 → SQLite化
+
