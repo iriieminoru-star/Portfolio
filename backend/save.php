@@ -1,5 +1,6 @@
 <?php
 
+
 // デバッグON（確認終わったらOFFに戻す）
 ini_set('display_errors',1);
 error_reporting(E_ALL);
@@ -65,7 +66,7 @@ if ($title === "" || $description === "") {
 }
 
 // 保存ファイル
-$file = "data.json";
+$file = __DIR__ . "/data.json";
 
 $list = [];
 
@@ -81,6 +82,7 @@ if (file_exists($file)) {
 
 // 新規追加
 $list[] = [
+  "id" => uniqid(), // ユニークID生成
   "title" => $title,
   "description" => $description
 ];

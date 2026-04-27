@@ -87,3 +87,48 @@
 
 一覧表示 → CSV出力 → SQLite化
 
+2026/04/27 15:30
+# Next.js + PHP CRUD（JSON版）
+
+このプロジェクトは、Next.js（フロント）とPHP（バックエンド）を使ったシンプルなCRUDアプリです。
+データベースは使用せず、JSONファイル（data.json）でデータを管理しています。
+
+---
+
+## 技術構成
+
+- フロントエンド：Next.js（React / use client）
+- バックエンド：PHP
+- データ保存：data.json（ファイルベース）
+
+---
+
+## 機能一覧
+
+### ✔ Create（作成）
+- フォームからデータ送信
+- PHP（save.php）で受信
+- uniqid()でIDを付与して保存
+
+### ✔ Read（一覧表示）
+- list.phpでJSON読み込み
+- Next.jsで一覧表示
+- データがない場合は「データがありません」と表示
+
+### ✔ Delete（削除）
+- delete.phpでIDを受け取り削除
+- フロントからボタンで削除
+- state更新で即時反映
+
+---
+
+## データ構造
+
+```json
+[
+  {
+    "id": "69eefa690a735",
+    "title": "テスト１",
+    "description": "テスト１です"
+  }
+]
