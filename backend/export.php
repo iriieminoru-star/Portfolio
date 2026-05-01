@@ -1,32 +1,40 @@
 <?php
 
+// CORS対応
+header("Access-Control-Allow-Origin: *");
+
+// CSVダウンロードヘッダー
 header("content-type: text/csv; charset=UTF-8");
 header("Content-Disposition: attachment; filename=data.csv");
 
 // BOM(Excelで文字化けしないようにするためのマジックコード)を出力
 echo "\xEF\xBB\xBF";
 
-$file = __DIR__ . "/data.json";
+$jsonFile = __DIR__ . "/data.json";
 
-$list = [];
-
-if (file_exists($file)) {
-    $json = file_get_contents($file);
-    $decoded = json_decode($json, true);
-
-    if (is_array($decoded)) {
-        $list = $decoded;
-    }
+if (!file_exists($jsonFile)) {
+    echo "データファイルが見つかりません。";
+    exit();
 }
 
-// CSVのヘッダー行
-echo "フォーム名,説明\n";
+$jsonData = file_get_contents($jsonFile);
+$data = json_decode($jsonData, true);
 
-foreach ($list as $item) {
+if (!$data || count($data) === 0 ) {
+
+}
+
+// CSV出力開始
+$output = fopen('php://output', 'w');
+
+// ヘッダー行（キーを取得）
+$headers = array_keys($data[0]);
+fputcsv($output, $headers);
+
+foreach ($data as $row) {
     // CSVの各行を出力
-    $title = $item["title"] ?? "";
-    $description = $item["description"] ?? "";
-    
-    // カンマ対策（ダブルクォートで囲む）
-    echo '"' . $title . '","' . $description . '"' . "\r\n";
+    fputcsv($output, $row);
 }
+
+fclose($output);
+exit;
