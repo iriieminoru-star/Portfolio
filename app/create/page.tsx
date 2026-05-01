@@ -24,15 +24,14 @@ type SaveResponse =
 export default function CreatePage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-<<<<<<< HEAD
+
+  const [list, setList] = useState<Item[]>([]);
+  const [editId, setEditId] = useState<string | null>(null);
+
   // ノーコード用：項目定義
   const [fields, setFields] = useState([
     { label: "名前", type: "text" },
   ]);
-=======
-  const [list, setList] = useState<Item[]>([]);
-  const [editId, setEditId] = useState<string | null>(null);
->>>>>>> 232f0193a481d997ca2905df3165ec20bd13cc2a
 
   // ========================
   // 一覧取得
@@ -51,43 +50,37 @@ export default function CreatePage() {
   // ========================
   const handleSubmit = async () => {
     try {
-<<<<<<< HEAD
       if (!title.trim()) {
         alert("フォーム名は必須です");
         return;
       }
-      const res = await fetch("http://localhost/no-code-api/backend/save.php", {
-=======
-      const url = editId
-        ? "http://localhost/no-code-api/backend/update.php"
-        : "http://localhost/no-code-api/backend/save.php";
 
-      const res = await fetch(url, {
->>>>>>> 232f0193a481d997ca2905df3165ec20bd13cc2a
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id: editId,
-          title,
-          description,
-        }),
-      });
+      const res = await fetch(
+        "http://localhost/no-code-api/backend/save.php",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id: editId,
+            title,
+            description,
+          }),
+        }
+      );
 
       const data: SaveResponse = await res.json();
 
       if (data.status === "success") {
         alert(editId ? "更新成功" : "保存成功");
 
-        // 再取得
         const listRes = await fetch(
           "http://localhost/no-code-api/backend/list.php"
         );
         const newList: Item[] = await listRes.json();
         setList(newList);
 
-        // 初期化
         setTitle("");
         setDescription("");
         setEditId(null);
@@ -100,21 +93,36 @@ export default function CreatePage() {
     }
   };
 
-<<<<<<< HEAD
-  // 項目を追加する関数
-  const addField = () => {
-    setFields([
-      ...fields,
-      { label: "", type: "text" },
-    ]);
+  // 編集
+  const handleEdit = (item: Item) => {
+    setTitle(item.title);
+    setDescription(item.description);
+    setEditId(item.id);
   };
 
-  // 公網を更新する関数
-  const updateField = (
-    index: number,
-    key: string,
-    value: string
-  ) => {
+  // 削除
+  const handleDelete = async (id: string) => {
+    await fetch(
+      "http://localhost/no-code-api/backend/delete.php",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id }),
+      }
+    );
+
+    setList(list.filter((item) => item.id !== id));
+  };
+
+  // 項目追加
+  const addField = () => {
+    setFields([...fields, { label: "", type: "text" }]);
+  };
+
+  // 更新
+  const updateField = (index: number, key: string, value: string) => {
     const newFields = [...fields];
     newFields[index] = {
       ...newFields[index],
@@ -123,35 +131,6 @@ export default function CreatePage() {
     setFields(newFields);
   };
 
-
-=======
-  // ========================
-  // 編集
-  // ========================
-  const handleEdit = (item: Item) => {
-    setEditId(item.id);
-    setTitle(item.title);
-    setDescription(item.description);
-  };
-
-  // ========================
-  // 削除
-  // ========================
-  const handleDelete = async (id: string) => {
-    if (!confirm("削除しますか？")) return;
-
-    await fetch("http://localhost/no-code-api/backend/delete.php", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ id }),
-    });
-
-    setList((prev) => prev.filter((item) => item.id !== id));
-  };
-
->>>>>>> 232f0193a481d997ca2905df3165ec20bd13cc2a
   return (
     <main style={{ padding: "20px", fontFamily: "sans-serif" }}>
       <h1>フォーム作成</h1>
@@ -175,33 +154,16 @@ export default function CreatePage() {
       </button>
 
       <hr />
-      <h2 style={{ marginBottom: "20px" }}>
-        項目設定（ノーコード）
-      </h2>
+
+      <h2>項目設定（ノーコード）</h2>
 
       {fields.map((field, index) => (
-        // <div key={index} style={{ marginBottom: "10px" }}>
-        <div
-          key={index}
-        style={{
-          marginBottom: "10px",
-          padding: "10px",
-          border: "1px solid #ccc",
-          borderRadius: "8px",
-          backgroundColor: "#f9f9f9",
-        }}
-        >
+        <div key={index} style={{ marginBottom: "10px" }}>
           <input
-            type="text"
-            placeholder="項目"
             value={field.label}
             onChange={(e) =>
               updateField(index, "label", e.target.value)
             }
-            style={{
-              marginRight: "10px",
-              padding: "5px",
-            }}
           />
 
           <select
@@ -209,9 +171,6 @@ export default function CreatePage() {
             onChange={(e) =>
               updateField(index, "type", e.target.value)
             }
-            style={{
-              padding: "5px",
-            }}
           >
             <option value="text">テキスト</option>
             <option value="number">数値</option>
@@ -227,14 +186,7 @@ export default function CreatePage() {
         <p>データがありません</p>
       ) : (
         list.map((item) => (
-          <div
-            key={item.id}
-            style={{
-              border: "1px solid #ccc",
-              padding: "10px",
-              marginBottom: "10px",
-            }}
-          >
+          <div key={item.id} style={{ border: "1px solid #ccc", padding: 10 }}>
             <p><strong>{item.title}</strong></p>
             <p>{item.description}</p>
 
