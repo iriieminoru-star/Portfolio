@@ -1,18 +1,15 @@
 <?php
 header("Content-Type: application/json");
 
-<<<<<<< HEAD
-// CORS設定
-=======
-// デバッグON（本番ではOFFにする）
+// ========================
+// デバッグ（開発用）
+// ========================
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-// JSONレスポンス
->>>>>>> 232f0193a481d997ca2905df3165ec20bd13cc2a
-header("Content-Type: application/json");
-
+// ========================
 // CORS（開発用）
+// ========================
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
@@ -23,32 +20,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-<<<<<<< HEAD
-// リクエスト受け取り
-$input = file_get_contents("php://input");
-$data = json_decode($input, true);
-
-// データ取得
-$id = $data["id"] ?? null;
-$title = trim($data["title"] ?? "");
-$description = trim($data["description"] ?? "");
-
-// ★入力チェック
-if (!$id) {
-    echo json_encode(["status" => "error", "message" => "IDがありません。"]);
-    exit();
-}
-
-if ($title === "" || $description === "") {
-  echo json_encode([
-    "status" => "error",
-    "message" => "未入力があります。"
-  ]);
-  exit();
-}
-
-$file = __DIR__ . "/data.json";
-=======
 // ========================
 // JSON受信
 // ========================
@@ -84,7 +55,6 @@ if ($id === "" || $title === "" || $description === "") {
 // ファイル処理
 // ========================
 $file = "data.json";
->>>>>>> 232f0193a481d997ca2905df3165ec20bd13cc2a
 
 if (!file_exists($file)) {
     echo json_encode([
@@ -98,23 +68,6 @@ if (!file_exists($file)) {
 $json = file_get_contents($file);
 $list = json_decode($json, true);
 
-<<<<<<< HEAD
-// 更新処理
-// file_put_contents($file, json_encode($list, JSON_UNESCAPED_UNICODE));
-foreach ($list as &$item) {
-    if ($item["id"] == $id) {
-        $item["title"] = $title;
-        $item["description"] = $description;
-        break;
-    }
-}
-
-// 保存
-file_put_contents($file, json_encode($list, JSON_UNESCAPED_UNICODE));
-
-// レスポンス
-echo json_encode(["status" => "success"]);
-=======
 if (!is_array($list)) {
     $list = [];
 }
@@ -133,7 +86,6 @@ foreach ($list as &$item) {
     }
 }
 
-// IDが見つからない
 if (!$found) {
     echo json_encode([
         "status" => "error",
@@ -166,4 +118,3 @@ echo json_encode([
     "title" => $title,
     "description" => $description
 ]);
->>>>>>> 232f0193a481d997ca2905df3165ec20bd13cc2a
