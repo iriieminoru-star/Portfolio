@@ -55,6 +55,7 @@ if (!is_array($data)) {
 // ==================================================
 $title = $data["title"] ?? "";
 $description = $data["description"] ?? "";
+$fields = $data["fields"] ?? [];
 
 // ★入力チェック
 if ($title === "" || $description === "") {
@@ -84,11 +85,12 @@ if (file_exists($file)) {
 $list[] = [
   "id" => uniqid(), // ユニークID生成
   "title" => $title,
-  "description" => $description
+  "description" => $description,
+  "fields" => $fields,
 ];
 
 // 保存
-$result = file_put_contents($file, json_encode($list, JSON_UNESCAPED_UNICODE));
+$result = file_put_contents($file, json_encode($list, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 
 if($result === false) {
   echo json_encode(["status" => "error", "message" => "save failed"]);
