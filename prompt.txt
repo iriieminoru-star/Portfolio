@@ -119,3 +119,141 @@ JSON（data.json）
 
 ・実務レベルのUIとUX
 ・ノーコード感のあるフォーム作成ツール
+
+
+2026/05/06 22:00
+【プロジェクト概要】
+Next.js + PHP + SQLiteで作成している「フォーム作成＆回答収集システム」。
+
+フロントはフォーム作成UI、バックエンドはPHP APIで構成。
+DBはSQLite（database.sqlite）を使用。
+
+---
+
+【現在の構成】
+
+■ backend/
+- db.php
+  ・SQLite接続関数 getDB() を提供
+  ・formsテーブル（フォーム定義）
+  ・answersテーブル（回答保存用）
+
+- save.php
+  ・フォームの新規作成 / 更新API
+  ・POST JSON受信
+  ・fieldsはJSON文字列でDB保存
+  ・formsテーブルへUPSERT的処理（id有無で分岐）
+
+- list.php
+  ・forms一覧取得API
+  ・fieldsは返さない（軽量化）
+  ・SELECT id, title, description FROM forms ORDER BY rowid DESC
+
+- detail.php
+  ・フォーム詳細取得API
+  ・GET idで取得
+  ・fieldsはJSON decodeして配列に変換して返す
+  ・レスポンス:
+    {
+      status: "success",
+      id,
+      title,
+      description,
+      fields: []
+    }
+
+- delete.php
+  ・フォーム削除API
+  ・POST JSONで id を受け取る
+  ・存在チェック → DELETE実行
+  ・成功時は status: success を返す
+
+---
+
+【DB構造】
+
+■ forms
+- id TEXT PRIMARY KEY
+- title TEXT
+- description TEXT
+- fields TEXT (JSON文字列)
+
+■ answers
+- id INTEGER PRIMARY KEY AUTOINCREMENT
+- form_id TEXT
+- field_id TEXT
+- value TEXT
+- created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+
+---
+
+【現在の仕様】
+- フォーム作成 → SQLiteに保存される
+- フォーム一覧 → list.phpで取得
+- フォーム詳細 → detail.phpで取得
+- 削除 → delete.phpで削除
+
+---
+
+【既知の改善点 / 注意】
+- JSONエラー時のフロント側「Unexpected token <」はPHPエラー出力が原因
+- SQLiteファイル削除後でもテーブルは自動生成される設計
+- save.phpとdb.phpで関数重複しないよう注意（redeclare対策）
+- fieldsは必ずJSON encode/decodeで扱う
+- delete.phpはrowCountチェックを使うが厳密必須ではない
+
+---
+
+## 📌 API仕様
+
+### フォーム作成・更新
+POST /save.php
+
+```json
+{
+  "id": "optional",
+  "title": "タイトル",
+  "description": "説明",
+  "fields": [
+    {
+      "id": "1",
+      "label": "名前",
+      "type": "text"
+    }
+  ]
+}
+
+フォーム一覧
+
+GET /list.php
+
+フォーム詳細
+
+GET /detail.php?id=xxx
+
+フォーム削除
+
+POST /delete.php
+{
+  "id": "xxx"
+}
+
+⚠ 設計ルール
+fieldsはJSONで保存
+SQLiteはローカルファイル運用
+APIはすべてJSON返却
+エラー時もJSON形式で返す
+CORSは開発用で全許可
+
+🧠 設計思想
+最小構成で動作するフォームビルダー
+フロントは自由設計（React / Next.js想定）
+バックエンドはAPI専用設計
+将来の拡張（回答機能）を前提に設計
+
+【今後の拡張予定】
+- 回答送信機能（answersテーブル使用）
+- フォーム公開URL生成
+- Sybil対策や投稿制限（将来的）
+- 管理画面UI改善
+

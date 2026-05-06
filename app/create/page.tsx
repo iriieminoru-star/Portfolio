@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+
 
 // ===== 型定義 =====
 type Item = {
@@ -21,11 +23,16 @@ type SaveResponse =
     message: string;
   };
 
+type FieldType = "text" | "number";
+
 type Field = {
   id: string;
   label: string;
-  type: string;
-};
+  type: FieldType;
+  value: string;
+}
+
+const API_BASE = "http://localhost/no-code-api/backend";
 
 // ===== START =====
 export default function CreatePage() {
@@ -35,28 +42,28 @@ export default function CreatePage() {
   const [list, setList] = useState<Item[]>([]);
   const [editId, setEditId] = useState<string | null>(null);
 
-  // ========================
-  // ノーコード用：項目定義
-  // ========================
   const [fields, setFields] = useState<Field[]>([
-    { id: crypto.randomUUID(), label: "", type: "text" },
+    { id: crypto.randomUUID(), label: "", type: "text", value: "" },
   ]);
 
-  // ========================
-  // 実際の入力値
-  // ========================
-  const [formData, setFormData] = useState<{ [key: string]: string }>({});
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const router = useRouter();
 
   // ========================
   // 一覧取得
   // ========================
   useEffect(() => {
-    fetch("http://localhost/no-code-api/backend/list.php")
+    fetch(`${API_BASE}/list.php`)
       .then((res) => res.json())
       .then((data: Item[]) => {
         setList(data);
       })
-      .catch(console.error);
+      .catch((err) => {
+        console.error(err);
+        setError("一覧取得に失敗しました");
+      });
   }, []);
 
   // ========================
@@ -64,49 +71,59 @@ export default function CreatePage() {
   // ========================
   const handleSubmit = async () => {
     try {
+      setLoading(true);
+      setError(null);
+
       if (!title.trim()) {
-        alert("フォーム名は必須です");
+        setError("フォーム名は必須です")
         return;
       }
 
-      const res = await fetch(
-        "http://localhost/no-code-api/backend/save.php",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            id: editId,
-            title,
-            description,
-            fields,
-            formData,
-          }),
-        }
-      );
+      const res = await fetch(`${API_BASE}/save.php`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: editId,
+          title,
+          description,
+          fields,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("保存に失敗しました");
+      }
 
       const data: SaveResponse = await res.json();
 
-      if (data.status === "success") {
-        alert(editId ? "更新成功" : "保存成功");
-
-        const listRes = await fetch(
-          "http://localhost/no-code-api/backend/list.php"
-        );
-        const newList: Item[] = await listRes.json();
-        setList(newList);
-
-        setTitle("");
-        setDescription("");
-        setEditId(null);
-        setFormData({});
-      } else {
-        alert(data.message);
+      if (data.status === "error") {
+        throw new Error(data.message);
       }
-    } catch (err) {
+
+      // 再取得
+      const listRes = await fetch(`${API_BASE}/list.php`);
+      const newList: Item[] = await listRes.json();
+      setList(newList);
+
+      // 初期化
+      setTitle("");
+      setDescription("");
+      setEditId(null);
+      setFields([
+        { id: crypto.randomUUID(), label: "", type: "text", value: "" },
+      ]);
+
+    } catch (err: unknown) {
       console.error(err);
-      alert("通信エラー");
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("通信エラー");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -123,34 +140,46 @@ export default function CreatePage() {
   // 削除
   // ========================
   const handleDelete = async (id: string) => {
-    await fetch(
-      "http://localhost/no-code-api/backend/delete.php",
-      {
+    try {
+      const res = await fetch(`${API_BASE}/delete.php`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ id }),
-      }
-    );
+      });
 
-    setList(list.filter((item) => item.id !== id));
+      if (!res.ok) {
+        throw new Error("削除に失敗しました");
+      }
+
+      setList((prev) => prev.filter((item) => item.id !== id));
+
+    } catch (err: unknown) {
+      console.error(err);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("削除エラー");
+      }
+    }
   };
 
   // ========================
-  // 項目追加
+  // 項目操作
   // ========================
   const addField = () => {
-    setFields([
-      ...fields,
-      { id: crypto.randomUUID(), label: "", type: "text" },
+    setFields((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), label: "", type: "text", value: "" },
     ]);
   };
 
-  // ========================
-  // 項目更新
-  // ========================
-  const updateField = (id: string, key: string, value: string) => {
+  const updateField = (
+    id: string,
+    key: keyof Field,
+    value: string
+  ) => {
     setFields((prev) =>
       prev.map((f) =>
         f.id === id ? { ...f, [key]: value } : f
@@ -158,57 +187,88 @@ export default function CreatePage() {
     );
   };
 
-  // ========================
-  // 入力フォームの 値 更新
-  // ========================
-  const handleChange = (id: string, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [id]: value,
-    }));
+  const removeField = (id: string) => {
+    if (!confirm("この項目を削除しますか？")) return;
+
+    setFields((prev) => {
+      if (prev.length === 1) return prev;
+      return prev.filter((f) => f.id !== id);
+    });
   };
 
+  const handleChange = (id: string, value: string) => {
+    setFields((prev) =>
+      prev.map((f) =>
+        f.id === id ? { ...f, value } : f
+      )
+    );
+  };
+
+  // ====================
+  // 並び替え（上）
+  // ========================
+  const moveUp = (index: number) => {
+    if (index === 0) return;
+    setFields((prev) => {
+      const newFields = [...prev];
+      [newFields[index - 1], newFields[index]] =
+        [newFields[index], newFields[index - 1]];
+      return newFields;
+    });
+  };
+
+  // ====================
+  // 並び替え(下)
+  // ====================
+  const moveDown = (index: number) => {
+    if (index === fields.length - 1) return;
+    setFields((prev) => {
+      const newFields = [...prev];
+      [newFields[index + 1], newFields[index]] =
+        [newFields[index], newFields[index + 1]];
+      return newFields;
+    });
+  };
+
+  // ====================
+  // 表示
+  // ====================
   return (
     <main style={{ padding: "20px", fontFamily: "sans-serif" }}>
-      {/* ナビ */}
       <div style={{ marginBottom: "20px" }}>
-        <Link href="/create" style={{ marginRight: "10px" }}>
-          新規作成
-        </Link>
-        <Link href="/list">
-          一覧
-        </Link>
+        <Link href="/create">新規作成</Link>
+        <Link href="/list">一覧</Link>
       </div>
 
       <h1>フォーム作成</h1>
+
+      {/* エラー表示 */}
+      {error && <p style={{ color: "red" }}> {error} </p>}
 
       <input
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="フォーム名"
-        style={{ display: "block", marginBottom: "10px" }}
       />
 
       <textarea
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         placeholder="説明"
-        style={{ display: "block", marginBottom: "10px" }}
       />
 
-      <button onClick={handleSubmit}>
-        {editId ? "更新" : "保存"}
+      <button onClick={handleSubmit} disabled={loading}>
+        {loading ? "保存中..." : editId ? "更新" : "保存"}
       </button>
 
       <hr />
 
-      <h2>項目設定（ノーコード）</h2>
+      <h2>項目設定</h2>
 
-      {fields.map((field) => (
-        <div key={field.id} style={{ marginBottom: "10px" }}>
+      {fields.map((field, index) => (
+        <div key={field.id}>
           <input
-            value={field.label || ""}
-            placeholder="項目名（例：名前）"
+            value={field.label}
             onChange={(e) =>
               updateField(field.id, "label", e.target.value)
             }
@@ -223,61 +283,29 @@ export default function CreatePage() {
             <option value="text">テキスト</option>
             <option value="number">数値</option>
           </select>
+
+          <button onClick={() => moveUp(index)}>↑</button>
+          <button onClick={() => moveDown(index)}>↓</button>
+          <button onClick={() => removeField(field.id)}>削除</button>
         </div>
       ))}
 
-      <button onClick={addField}>＋項目追加</button>
+      <button onClick={addField}>＋追加</button>
 
       <hr />
 
-      <h2>入力フォーム（実際の入力）</h2>
-
-      {fields.map((field) => (
-        <div key={field.id} style={{ marginBottom: "10px" }}>
-
-          {/* ラベル表示 */}
-          <label>
-            {field.label ? field.label : "項目名を入力してください"}
-          </label>
-          {/* テキスト */}
-          {field.type === "text" && (
-            <input
-              value={formData[field.id] || ""}
-              onChange={(e) =>
-                handleChange(field.id, e.target.value)
-              }
-              style={{ display: "block" }}
-            />
-          )}
-          {/* ナンバー */}
-          {field.type === "number" && (
-            <input
-              type="number"
-              value={formData[field.id] || ""}
-              onChange={(e) =>
-                handleChange(field.id, e.target.value)
-              }
-              style={{ display: "block" }}
-            />
-          )}
-        </div>
-      ))}
-
       <h2>一覧</h2>
 
-      {list.length === 0 ? (
-        <p>データがありません</p>
-      ) : (
-        list.map((item) => (
-          <div key={item.id} style={{ border: "1px solid #ccc", padding: 10 }}>
-            <p><strong>{item.title}</strong></p>
-            <p>{item.description}</p>
-
-            <button onClick={() => handleEdit(item)}>編集</button>
-            <button onClick={() => handleDelete(item.id)}>削除</button>
-          </div>
-        ))
-      )}
+      {list.map((item) => (
+        <div key={item.id}>
+          <p>{item.title}</p>
+          <button onClick={() => handleEdit(item)}>編集</button>
+          <button onClick={() => handleDelete(item.id)}>削除</button>
+          <button onClick={() => router.push(`/form/${item.id}`)}>
+            入力
+          </button>
+        </div>
+      ))}
     </main>
   );
 }

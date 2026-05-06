@@ -50,24 +50,24 @@ export default function ListPage() {
     // 初回表示時に一覧データを取得する処理
     // 第二引数 [] により「最初の1回だけ」実行される
     useEffect(() => {
-    fetch("http://localhost/no-code-api/backend/list.php")
-    .then((res) => res.json())
-    .then((json: FormItem[]) => {
-            setData(json);          // データをstateにセット
-            setLoading(false);      // ローディング終了
-        })
-        .catch((err) => {
-            console.error("取得エラー：", err);
-            setLoading(false);
-        });
+        fetch("http://localhost/no-code-api/backend/list.php")
+            .then((res) => res.json())
+            .then((json: FormItem[]) => {
+                setData(json);          // データをstateにセット
+                setLoading(false);      // ローディング終了
+            })
+            .catch((err) => {
+                console.error("取得エラー：", err);
+                setLoading(false);
+            });
     }, []);
-    
+
     // 削除処理（指定のIDデータを削除する）
     const handleDelete = async (id: number) => {
         console.log("DELETE ID:", id);
         // 確認ダイアログ
         if (!confirm("本当に削除しますか？")) return;
-        
+
         try {
             // APIに削除リクエストを送る
             const res = await fetch("http://localhost/no-code-api/backend/delete.php", {
@@ -77,9 +77,9 @@ export default function ListPage() {
                 },
                 body: JSON.stringify({ id })
             });
-            
+
             const data: DeleteResponse = await res.json();
-            
+
             if (data.status === "success") {
                 // 画面から削除（再度APIを呼ばず、stateを直接更新することで高速化）
                 // filterで指定ID以外を残すことで削除を実現
@@ -91,7 +91,7 @@ export default function ListPage() {
             } else {
                 // alert(data.message);
                 setError(data.message);
-                setSuccess(null);  
+                setSuccess(null);
             }
         } catch (err) {
             console.error("通信エラー：", err);
@@ -99,7 +99,7 @@ export default function ListPage() {
             setSuccess(null);
         }
     };
-    
+
     const handleUpdate = async (id: number) => {
         try {
             if (!title.trim()) {
@@ -142,16 +142,17 @@ export default function ListPage() {
                 setSuccess(null);
             }
         } catch (err) {
+            console.error(err);
             setError("通信エラーが発生しました");
             setSuccess(null);
         }
     };
-    
+
     return (
         <div style={{ padding: "20px" }}>
-        <h1>一覧画面</h1>
-        {/* エラー表示 */}
-        {error && (
+            <h1>一覧画面</h1>
+            {/* エラー表示 */}
+            {error && (
                 <div style={{
                     backgroundColor: "#ffdddd",
                     color: "#900",
@@ -173,99 +174,99 @@ export default function ListPage() {
                 }}>
                     {success}
                 </div>
-        )}
+            )}
 
-        {/*
+            {/*
          CSVダウンロードボタン
          PHPのexport.phpを直接呼び出し、CSVファイルをダウンロードする
         */}
-        <button
-            onClick={() => {
-                window.location.href = "http://localhost/no-code-api/backend/export.php";
-            }}
-            style={{
-                padding: "10px 20px",
-                backgroundColor: "#4CAF50",
-                color: "white",
-                border: "none",
-                borderRadius: "5px",
-                cursor: "pointer"
-            }}
-        >
-            CSVダウンロード
-        </button>
-        
-        {/* ローディング中 */}
-        {loading && <p>読み込み中...</p>}
-
-        {/* データなし */}
-        {!loading && data.length === 0 && <p>データがありません。</p>}
-
-        {/* データあり */}
-        {!loading && data.length > 0 && (
-            <table border={1}
-                cellPadding={10}
+            <button
+                onClick={() => {
+                    window.location.href = "http://localhost/no-code-api/backend/export.php";
+                }}
                 style={{
-                    borderCollapse: "collapse",
-                    width: "100%",
-                    tableLayout: "fixed",
+                    padding: "10px 20px",
+                    backgroundColor: "#4CAF50",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "5px",
+                    cursor: "pointer"
                 }}
             >
-                <thead>
-                    <tr>
-                        <th style={{ width: "30%" }}>フォーム名</th>
-                        <th style={{ width: "40%" }}>説明</th>
-                        <th style={{ width: "15%" }}>削除</th>
-                        <th style={{ width: "15%" }}>操作</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {data.map((item) => (
-                        <tr key={item.id}>
-                            <td>
-                                {editId === item.id ? (
-                                    <input
-                                        value={title}
-                                        onChange={(e) => setTitle(e.target.value)}
-                                        style={{ width: "90%" }}
-                                    />
-                                ) : (
-                                    item.title
-                                )}
-                            </td>
-                            <td>
-                                {editId === item.id ? (
-                                    <textarea
-                                        value={description}
-                                        onChange={(e) => setDescription(e.target.value)}
-                                        style={{
-                                            width: "95%",
-                                            minHeight: "60px",
-                                            padding: "5px",
-                                        }}
-                                    />
-                                ) : (
-                                    item.description
-                                )}
-                            </td>
-                            <td style={{ textAlign: "center" }}>
-                                {/* 削除ボタン */}
-                                <button onClick={() => handleDelete(item.id)}>
-                                    削除
-                                </button>
-                            </td>
-                            <td style={{ textAlign: "center" }}>
-                                {/* 編集ボタン */}
-                                {editId === item.id ? (
-                                    <>
-                                    <button onClick={() => handleUpdate(item.id)}>
-                                        保存
+                CSVダウンロード
+            </button>
+
+            {/* ローディング中 */}
+            {loading && <p>読み込み中...</p>}
+
+            {/* データなし */}
+            {!loading && data.length === 0 && <p>データがありません。</p>}
+
+            {/* データあり */}
+            {!loading && data.length > 0 && (
+                <table border={1}
+                    cellPadding={10}
+                    style={{
+                        borderCollapse: "collapse",
+                        width: "100%",
+                        tableLayout: "fixed",
+                    }}
+                >
+                    <thead>
+                        <tr>
+                            <th style={{ width: "30%" }}>フォーム名</th>
+                            <th style={{ width: "40%" }}>説明</th>
+                            <th style={{ width: "15%" }}>削除</th>
+                            <th style={{ width: "15%" }}>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {data.map((item) => (
+                            <tr key={item.id}>
+                                <td>
+                                    {editId === item.id ? (
+                                        <input
+                                            value={title}
+                                            onChange={(e) => setTitle(e.target.value)}
+                                            style={{ width: "90%" }}
+                                        />
+                                    ) : (
+                                        item.title
+                                    )}
+                                </td>
+                                <td>
+                                    {editId === item.id ? (
+                                        <textarea
+                                            value={description}
+                                            onChange={(e) => setDescription(e.target.value)}
+                                            style={{
+                                                width: "95%",
+                                                minHeight: "60px",
+                                                padding: "5px",
+                                            }}
+                                        />
+                                    ) : (
+                                        item.description
+                                    )}
+                                </td>
+                                <td style={{ textAlign: "center" }}>
+                                    {/* 削除ボタン */}
+                                    <button onClick={() => handleDelete(item.id)}>
+                                        削除
                                     </button>
-                                    <button onClick={() => setEditId(null)}>
-                                        キャンセル
-                                    </button>
-                                    </>
-                                ) : (
+                                </td>
+                                <td style={{ textAlign: "center" }}>
+                                    {/* 編集ボタン */}
+                                    {editId === item.id ? (
+                                        <>
+                                            <button onClick={() => handleUpdate(item.id)}>
+                                                保存
+                                            </button>
+                                            <button onClick={() => setEditId(null)}>
+                                                キャンセル
+                                            </button>
+                                        </>
+                                    ) : (
                                         <button
                                             onClick={() => {
                                                 setEditId(item.id);
@@ -275,15 +276,15 @@ export default function ListPage() {
                                                 setError(null);
                                                 setSuccess(null);
                                             }}>
-                                        編集
-                                    </button>
-                                )}
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        )}
-    </div>
+                                            編集
+                                        </button>
+                                    )}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            )}
+        </div>
     );
 }

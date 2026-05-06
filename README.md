@@ -1,427 +1,140 @@
-# 進捗レポート（2026/04/26）
+# No Code Form App（PHP + SQLite）
 
-## ■ プロジェクト概要
-ノーコードでフォームを作成し、
-入力・保存・一覧・CSV出力まで行える業務支援ツールを開発中
-
----
-
-## ■ 技術構成
-フロント：Next.js / React / TypeScript  
-バックエンド：PHP（XAMPP）  
-データ保存：JSON（data.json）※後にSQLite予定  
+シンプルなフォーム作成・回答収集アプリです。  
+PHP + SQLite で構成された軽量なバックエンドAPIです。
 
 ---
 
-## ■ 完了機能
+## 📌 機能
 
-### 【フロント】
-・/createページ作成  
-・フォーム入力UI（title / description）  
-・useStateによる状態管理  
-・fetchによるPOST送信  
-・APIレスポンスによる分岐処理  
-・エラーメッセージ表示対応  
+### フォーム管理
+- フォーム作成（タイトル・説明・項目）
+- フォーム編集
+- フォーム削除
+- フォーム一覧取得
+- フォーム詳細取得
 
----
-
-### 【バックエンド】
-・save.php（データ保存API）
-  - JSON受信
-  - CORS対応
-  - OPTIONS対応
-  - バリデーション（未入力チェック）
-  - data.jsonへの保存
-  - エラーハンドリング
-
-・list.php（一覧取得API）
-  - data.json読み込み
-  - JSON返却
-  - エラー耐性あり
+### データ構造
+フォームは `fields` にJSON形式で項目を保存します。
 
 ---
 
-### 【データ】
-・data.jsonへの永続化成功  
-・追記形式で保存  
-・日本語対応（UTF-8）  
+## 🧱 技術構成
+
+- PHP（APIサーバー）
+- SQLite（データベース）
+- JSON API
+- CORS対応（フロント接続用）
 
 ---
 
-## ■ 技術的に重要な学習ポイント
+## 📁 ディレクトリ構成
 
-・CORSの理解  
-・fetch + JSON通信の流れ  
-・PHPでのJSON処理  
-・バリデーション（入力チェック）  
-・エラー原因特定（Unexpected token <）  
-・PHP WarningがJSONを壊す問題  
-・防御的プログラミング（初期化・型チェック）  
-
----
-
-## ■ 現在の状態
-
-フォーム入力 → API送信 → 保存 → レスポンス → 表示  
-の一連の流れが完成
-
-→ 「動くアプリ」として成立
+backend/
+ ├── db.php          # DB接続・テーブル作成
+ ├── save.php        # フォーム作成・更新
+ ├── list.php        # フォーム一覧取得
+ ├── detail.php      # フォーム詳細取得
+ ├── delete.php      # フォーム削除
+ └── database.sqlite # SQLite本体（自動生成）
 
 ---
 
-## ■ 未実装（次工程）
+## 🗄 データベース構造
 
-① 一覧表示（画面への反映）  
-② CSV出力機能  
-③ SQLite化（DB化）  
+### forms テーブル
 
----
-
-## ■ 完成度
-
-約 60〜70%
-
----
-
-## ■ 次の予定
-
-一覧表示 → CSV出力 → SQLite化
-
-2026/04/27 15:30
-# Next.js + PHP CRUD（JSON版）
-
-このプロジェクトは、Next.js（フロント）とPHP（バックエンド）を使ったシンプルなCRUDアプリです。
-データベースは使用せず、JSONファイル（data.json）でデータを管理しています。
+| カラム       | 型      | 内容             |
+|--------------|---------|------------------|
+| id           | TEXT    | フォームID       |
+| title        | TEXT    | フォームタイトル |
+| description  | TEXT    | 説明             |
+| fields       | TEXT    | 項目（JSON）     |
 
 ---
 
-## 技術構成
+### answers テーブル（将来用）
 
-- フロントエンド：Next.js（React / use client）
-- バックエンド：PHP
-- データ保存：data.json（ファイルベース）
-
----
-
-## 機能一覧
-
-### ✔ Create（作成）
-- フォームからデータ送信
-- PHP（save.php）で受信
-- uniqid()でIDを付与して保存
-
-### ✔ Read（一覧表示）
-- list.phpでJSON読み込み
-- Next.jsで一覧表示
-- データがない場合は「データがありません」と表示
-
-### ✔ Delete（削除）
-- delete.phpでIDを受け取り削除
-- フロントからボタンで削除
-- state更新で即時反映
+id INTEGER PRIMARY KEY AUTOINCREMENT  
+form_id TEXT  
+field_id TEXT  
+value TEXT  
+created_at DATETIME DEFAULT CURRENT_TIMESTAMP  
 
 ---
 
-## データ構造
+## 🚀 API一覧
 
-```json
-[
-  {
-    "id": "69eefa690a735",
-    "title": "テスト１",
-    "description": "テスト１です"
-  }
-]
+### フォーム作成・更新
+POST /save.php
 
-<<<<<<< HEAD
-【2026/05/01】
-# ノーコードフォーム作成ツール
+Request:
+{
+  "id": "optional",
+  "title": "タイトル",
+  "description": "説明",
+  "fields": [
+    {
+      "id": "1",
+      "label": "名前",
+      "type": "text"
+    }
+  ]
+}
 
-## 概要
-ノーコードでフォームを作成し、
-入力・保存・一覧・編集・削除・CSV出力まで行える
-小規模業務支援ツールです。
-
-ポートフォリオとして開発しています。
-
----
-
-## 機能一覧
-
-- フォーム作成（Create）
-- 一覧表示（Read）
-- 編集（Update）
-- 削除（Delete）
-- CSV出力
-- バリデーション（未入力チェック）
-- エラー / 成功メッセージ表示
-=======
-2026/04/30 20:58
-# ノーコード業務ツール（ポートフォリオ）
-
-## 概要
-ノーコードでフォームを作成し、  
-データの登録・一覧表示・編集・削除ができる  
-小規模業務支援ツールを開発中。
->>>>>>> 232f0193a481d997ca2905df3165ec20bd13cc2a
+Response:
+{
+  "status": "success",
+  "id": "xxx"
+}
 
 ---
 
-## 技術構成
-
-### フロントエンド
-- Next.js
-- React
-- TypeScript
-
-### バックエンド
-- PHP（XAMPP）
-
-<<<<<<< HEAD
-### データ
-- JSON（data.json）
-=======
-### データ保存
-- JSONファイル（data.json）
-- ※将来的にSQLiteへ移行予定
->>>>>>> 232f0193a481d997ca2905df3165ec20bd13cc2a
+### フォーム一覧取得
+GET /list.php
 
 ---
 
-## ディレクトリ構成
-<<<<<<< HEAD
-
-### フロント
-no-code-pj/
-
-
-### バックエンド
-C:\xampp\htdocs\no-code-api\backend
-
-
-※ シンボリックリンクで接続
+### フォーム詳細取得
+GET /detail.php?id=xxx
 
 ---
 
-## 起動方法
+### フォーム削除
+POST /delete.php
 
-### ① XAMPP起動
-- Apache を ON
+Request:
+{
+  "id": "xxx"
+}
 
-### ② Next.js起動
-cd no-code-pj
-npm run dev
-
-
-### ③ アクセス
-http://localhost:3000/create
-
-
----
-
-## APIエンドポイント
-
-### GET
-/save.php
-/update.php
-/delete.php
-
+Response:
+{
+  "status": "success",
+  "message": "削除しました"
+}
 
 ---
 
-## CSV出力
-/export.php
+## ⚠ 注意点
 
-
----
-
-## 現在の課題
-
-- UIの統一（create / list）
-- ナビゲーションの整備
-- ノーコードUIの実装
+- SQLiteはローカルファイルとして保存される
+- 初回アクセス時に自動でテーブル作成
+- CORSは開発用で全許可
 
 ---
 
-## 今後の展望
+## 🧠 設計思想
 
-- フォーム項目の動的生成（ノーコード化）
-- ドラッグ＆ドロップUI
-- SQLiteへの移行
-- 認証機能の追加
-
----
-
-## 制作背景
-
-業務で使える簡易ツールを想定し、
-ノーコードで扱えるフォーム作成機能を目指しています。
-=======
-no-code-pj/
-├─ app/
-│ ├─ create/
-│ │ └─ page.tsx
-│ └─ no-code-api/
-│ └─ backend/
-│ ├─ data.json
-│ ├─ save.php
-│ ├─ list.php
-│ ├─ delete.php
-│ └─ update.php
-
-
-※ 実際のAPIは以下に配置
-
-C:\xampp\htdocs\no-code-api\backend
-
-
-シンボリックリンクで連携：
-
-mklink /D C:\xampp\htdocs\no-code-api\backend C:\Users\iriie\OneDrive\デスクトップ\ポートフォリオ\no-code-pj\app\no-code-api\backend
-
+- シンプルなJSON API
+- 最小構成で動作するフォームエンジン
+- fieldsは柔軟なJSON構造
 
 ---
 
-## 実装済み機能
+## 📌 今後の拡張
 
-### ① Create（作成）
-- フォーム入力（title / description）
-- save.phpにPOST送信
-- data.jsonに保存
-- uniqid()でID付与
-
----
-
-### ② Read（一覧表示）
-- list.phpでJSON取得
-- 画面に一覧表示
-- データ0件時は「データがありません」
-
----
-
-### ③ Update（編集）
-- 編集ボタンでフォームに値セット
-- update.phpでIDベース更新
-- 更新後は一覧再取得
-
----
-
-### ④ Delete（削除）
-- 削除ボタン
-- delete.phpでID削除
-- state更新で即反映
-
----
-
-## API一覧
-
-### save.php
-- 新規データ保存
-
-### list.php
-- 一覧取得
-
-### update.php
-- ID指定で更新
-
-### delete.php
-- ID指定で削除
-
----
-
-## 動作手順（重要）
-
-### ① XAMPP起動
-- Apacheを起動する
-
-※これをやらないと以下エラーになる
-TypeError: Failed to fetch
-ERR_CONNECTION_REFUSED
-
-
----
-
-### ② API確認
-ブラウザで確認：
-
-http://localhost/no-code-api/backend/list.php
-
-
-→ JSONが表示されればOK
-
----
-
-### ③ フロント起動
-
-npm run dev
-
-
-※トップページではなく create にアクセスすること
-
----
-
-## ハマったポイント
-
-### ① 保存できない
-→ 原因：XAMPP未起動
-
----
-
-### ② 404エラー
-→ 原因：PHPがhtdocs配下にない
-
----
-
-### ③ Failed to fetch
-→ 原因：
-- Apache未起動
-- URLミス
-- CORS
-
----
-
-### ④ VSCodeで保存忘れ
-→ Git差分が出ない原因
-
----
-
-## 現在の到達点
-
-- CRUDすべて完成（Create / Read / Update / Delete）
-- フロントとPHPの連携完了
-- JSONによる簡易DB構築済み
-
----
-
-## 今後の予定
-
-- CSV出力機能
-- フォーム項目の動的生成（ノーコード化）
-- SQLite移行
-- UI改善
-
----
-
-## メモ
-
-- Next.jsはフロント専用
-- PHPはAPIサーバーとして利用
-- ローカル環境（localhost）で動作
-
----
-
-## 進捗
-
-約70%完了（基盤完成フェーズ）
->>>>>>> 232f0193a481d997ca2905df3165ec20bd13cc2a
-
----
-
-## 作者
-<<<<<<< HEAD
-入家稔
-=======
-
-ポートフォリオ制作中
-
->>>>>>> 232f0193a481d997ca2905df3165ec20bd13cc2a
+- 回答送信API（submit.php）
+- 回答一覧
+- 認証機能
+- 公開URL機能
