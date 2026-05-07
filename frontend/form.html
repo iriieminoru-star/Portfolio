@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Form</title>
+</head>
+<body>
+
+  <h1>データ登録フォーム</h1>
+
+  <!-- =========================
+       フォーム本体
+  ========================== -->
+  <form id="myForm">
+
+    <div>
+      <label>タイトル</label><br>
+      <input type="text" name="title" required>
+    </div>
+
+    <br>
+
+    <div>
+      <label>説明</label><br>
+      <textarea name="description" required></textarea>
+    </div>
+
+    <br>
+
+    <button type="submit">送信</button>
+
+  </form>
+
+  <hr>
+
+  <pre id="debug"></pre>
+
+  <!-- =========================
+       JS（送信処理）
+  ========================== -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+
+      const form = document.getElementById("myForm");
+      const debug = document.getElementById("debug");
+
+      if (!form) {
+        console.error("myForm が見つかりません");
+        return;
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        // フォームデータ取得
+        const data = {
+          id: crypto.randomUUID(),
+          title: form.title.value,
+          description: form.description.value
+        };
+
+        console.log("送信データ:", data);
+        debug.textContent = JSON.stringify(data, null, 2);
+
+        try {
+          const res = await fetch("/no-code-api/backend/update.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+          });
+
+          const result = await res.json();
+          console.log("サーバー応答:", result);
+
+          debug.textContent += "\n\n" + JSON.stringify(result, null, 2);
+
+        } catch (err) {
+          console.error("通信エラー:", err);
+        }
+      });
+
+    });
+  </script>
+
+</body>
+</html>

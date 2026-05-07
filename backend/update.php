@@ -72,9 +72,32 @@ if (!is_array($list)) {
     $list = [];
 }
 
+// // ========================
+// // 更新処理
+// // ========================
+// $found = false;
+
+// foreach ($list as &$item) {
+//     if ($item["id"] === $id) {
+//         $item["title"] = $title;
+//         $item["description"] = $description;
+//         $found = true;
+//         break;
+//     }
+// }
+
+// if (!$found) {
+//     echo json_encode([
+//         "status" => "error",
+//         "message" => "データが見つかりません"
+//     ]);
+//     exit();
+// }
+
 // ========================
-// 更新処理
+// 更新 or 新規追加処理
 // ========================
+
 $found = false;
 
 foreach ($list as &$item) {
@@ -86,14 +109,14 @@ foreach ($list as &$item) {
     }
 }
 
+// 見つからなければ新規追加
 if (!$found) {
-    echo json_encode([
-        "status" => "error",
-        "message" => "データが見つかりません"
-    ]);
-    exit();
+    $list[] = [
+        "id" => $id,
+        "title" => $title,
+        "description" => $description
+    ];
 }
-
 // ========================
 // 保存
 // ========================

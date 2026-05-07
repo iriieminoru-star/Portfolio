@@ -257,3 +257,115 @@ CORSは開発用で全許可
 - Sybil対策や投稿制限（将来的）
 - 管理画面UI改善
 
+2026/05/07 15:27
+■ 今日の作業引継ぎ（ノーコードフォームプロジェクト）
+
+【プロジェクト概要】
+フォーム（frontend/form.html）からデータを送信し、
+PHP（backend/update.php）で受け取り、
+JSON（backend/data.json）に保存するシンプルなCRUD基盤の構築。
+
+将来的に一覧・編集・削除を追加する前提の基盤設計。
+
+---
+
+【今日やったこと】
+
+■ 1. フロントエンド修正（frontend/form.html）
+- form要素に id="myForm" を設定
+- submitイベントでfetch送信を実装
+- 送信データを console.log + debug表示で可視化
+- JSONデータ（id / title / description）を生成
+
+---
+
+■ 2. debug機能の導入
+目的：処理のどこで止まっているか可視化するため
+
+- 送信データを画面表示
+- console.logで確認
+- fetch前後の状態確認
+
+結果：
+→ フロントは正常に動作していることが確認できた
+
+---
+
+■ 3. API通信問題の発見（重要）
+- fetch先が /backend/update.php になっており404エラー発生
+- 正しくはプロジェクト配下パスが必要
+
+修正：
+→ /no-code-api/backend/update.php に変更
+
+---
+
+■ 4. バックエンド修正（backend/update.php）
+- JSON受信処理（php://input）
+- 入力チェック（id / title / description）
+- data.jsonの読み込み
+- CREATE + UPDATE統合処理に変更
+  ・id一致 → 更新
+  ・idなし → 新規追加
+- JSON保存（file_put_contents）
+
+---
+
+■ 5. データ保存成功
+backend/data.json に以下形式で保存されるようになった：
+
+[
+  {
+    "id": "...",
+    "title": "...",
+    "description": "..."
+  }
+]
+
+→ 複数データの蓄積に成功
+
+---
+
+■ 6. answers.phpの扱い
+- 初期設計では「回答専用API」として検討
+- その後 update.php に機能統合
+- answers.phpは不要となり _old に退避（黒歴史管理）
+
+---
+
+■ 7. _old運用
+- 旧ファイルを削除せず退避
+- 将来の比較・復元用として保持
+- 現行システムには影響なし
+
+---
+
+【最終状態】
+
+frontend/form.html
+  ↓（fetch + debug）
+backend/update.php
+  ↓
+backend/data.json
+
+→ CRUDの「Create / Update」まで完成
+
+---
+
+【現在の達成レベル】
+- フォーム送信：OK
+- API通信：OK
+- JSON保存：OK
+- デバッグ導入：OK
+- 旧設計整理：OK
+
+→ ミニアプリとして成立状態
+
+---
+
+【次の拡張予定】
+- list.php（データ一覧取得）
+- list.html（一覧画面）
+- delete.php（削除機能）
+- 編集UI（update連携）
+

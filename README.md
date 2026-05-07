@@ -1,140 +1,123 @@
-# No Code Form App（PHP + SQLite）
+# ノーコード風フォームCRUDシステム
 
-シンプルなフォーム作成・回答収集アプリです。  
-PHP + SQLite で構成された軽量なバックエンドAPIです。
+## 概要
+このプロジェクトは、フォームから入力したデータをPHPで受け取り、JSONファイルに保存するシンプルなCRUD（作成・更新）システムです。
 
----
-
-## 📌 機能
-
-### フォーム管理
-- フォーム作成（タイトル・説明・項目）
-- フォーム編集
-- フォーム削除
-- フォーム一覧取得
-- フォーム詳細取得
-
-### データ構造
-フォームは `fields` にJSON形式で項目を保存します。
+フロントエンド・バックエンド・JSON保存の流れを学習するために作成したミニアプリです。
 
 ---
 
-## 🧱 技術構成
+## 使用技術
 
-- PHP（APIサーバー）
-- SQLite（データベース）
-- JSON API
-- CORS対応（フロント接続用）
+- フロントエンド：HTML / JavaScript
+- バックエンド：PHP
+- データ保存：JSONファイル（data.json）
+- 通信：fetch API
 
 ---
 
-## 📁 ディレクトリ構成
+## 機能
+
+### ■ データ送信（Create / Update）
+- フォーム（frontend/form.html）からデータ送信
+- JavaScriptのfetchでPHPへ送信
+- backend/update.phpで受信処理
+- data.jsonに保存または更新
+
+---
+
+### ■ デバッグ機能
+- 送信データをコンソールに表示
+- 画面上にもJSONを表示
+- API通信の流れを可視化
+
+---
+
+### ■ 旧構成の整理
+- 旧実装（answers.php関連）は _old フォルダに退避
+- 現行システムと分離して管理
+
+---
+
+## ディレクトリ構成
+
+frontend/
+└── form.html（入力フォーム）
 
 backend/
- ├── db.php          # DB接続・テーブル作成
- ├── save.php        # フォーム作成・更新
- ├── list.php        # フォーム一覧取得
- ├── detail.php      # フォーム詳細取得
- ├── delete.php      # フォーム削除
- └── database.sqlite # SQLite本体（自動生成）
+├── update.php（API処理）
+└── data.json（データ保存）
+
+_old/
+└── 旧ファイル（未使用・保管用）
 
 ---
 
-## 🗄 データベース構造
+## データの流れ
 
-### forms テーブル
-
-| カラム       | 型      | 内容             |
-|--------------|---------|------------------|
-| id           | TEXT    | フォームID       |
-| title        | TEXT    | フォームタイトル |
-| description  | TEXT    | 説明             |
-| fields       | TEXT    | 項目（JSON）     |
+frontend/form.html  
+　↓（fetch通信）  
+backend/update.php  
+　↓  
+backend/data.json  
 
 ---
 
-### answers テーブル（将来用）
+## backend/update.php の処理内容
 
-id INTEGER PRIMARY KEY AUTOINCREMENT  
-form_id TEXT  
-field_id TEXT  
-value TEXT  
-created_at DATETIME DEFAULT CURRENT_TIMESTAMP  
+- JSONデータを受け取る
+- 必須項目チェック（id / title / description）
+- data.jsonを読み込み
+- idが一致する場合は更新
+- 存在しない場合は新規追加
+- JSONとして保存
 
 ---
 
-## 🚀 API一覧
+## 送信データ例
 
-### フォーム作成・更新
-POST /save.php
-
-Request:
 {
-  "id": "optional",
+  "id": "ユニークID",
   "title": "タイトル",
-  "description": "説明",
-  "fields": [
-    {
-      "id": "1",
-      "label": "名前",
-      "type": "text"
-    }
-  ]
-}
-
-Response:
-{
-  "status": "success",
-  "id": "xxx"
+  "description": "説明"
 }
 
 ---
 
-### フォーム一覧取得
-GET /list.php
+## 現在の完成状態
+
+- フォーム送信：完了
+- API通信：完了
+- JSON保存：完了
+- 作成機能（Create）：完了
+- 更新機能（Update）：完了
+- デバッグ機能：完了
+- 旧構成整理：完了
 
 ---
 
-### フォーム詳細取得
-GET /detail.php?id=xxx
+## 今後の拡張予定
+
+- 一覧表示機能（list.php）
+- フロント一覧画面（list.html）
+- 削除機能（delete.php）
+- 編集画面の実装
+- データベース化（MySQLなど）
 
 ---
 
-### フォーム削除
-POST /delete.php
+## 学習目的
 
-Request:
-{
-  "id": "xxx"
-}
+このプロジェクトは以下を学ぶために作成：
 
-Response:
-{
-  "status": "success",
-  "message": "削除しました"
-}
+- フロントエンドとバックエンドの連携
+- fetchによるAPI通信
+- PHPでのJSON処理
+- CRUDの基本構造
+- デバッグによる処理の可視化
 
 ---
 
-## ⚠ 注意点
+## 状態
 
-- SQLiteはローカルファイルとして保存される
-- 初回アクセス時に自動でテーブル作成
-- CORSは開発用で全許可
-
----
-
-## 🧠 設計思想
-
-- シンプルなJSON API
-- 最小構成で動作するフォームエンジン
-- fieldsは柔軟なJSON構造
-
----
-
-## 📌 今後の拡張
-
-- 回答送信API（submit.php）
-- 回答一覧
-- 認証機能
-- 公開URL機能
+ミニCRUDアプリとして動作する状態まで完成済み
