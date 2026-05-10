@@ -42,3 +42,5 @@ next-env.d.ts
 
 # no-code-pj
 no-code-api/backend/data.json
+
+backup/
