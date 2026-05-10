@@ -25,14 +25,14 @@ type FormResponse =
     message: string;
   };
 
-type SubmitResponse = 
+type SubmitResponse =
   | {
-      status: "success";
-    }
+    status: "success";
+  }
   | {
     status: "error";
     message: string;
-  };  
+  };
 
 // =====================
 // ページ
@@ -107,10 +107,10 @@ export default function FormPage() {
   // ===============
   // 入力変更
   // ===============
-  const handleChange = (fieldId: string, value: string) => {
+  const handleChange = (field_id: string, value: string) => {
     setInputData((prev) => ({
       ...prev,
-      [fieldId]: value,
+      [field_id]: value,
     }));
   };
 

@@ -29,14 +29,14 @@ require_once(__DIR__ . "/db.php");
 // ==============================
 $input = json_decode(file_get_contents("php://input"), true);
 
-$formId = $input["formId"] ?? null;
+$form_id = $input["form_id"] ?? null;
 $answers = $input["answers"] ?? null;
 
 // ==============================
 // バリデーション
 // ==============================
 if (
-  !$formId ||
+  !$form_id ||
   !is_array($answers) ||
   count($answers) === 0
 ) {
@@ -61,7 +61,7 @@ try {
   ");
   
   $checkStmt->execute([
-    ":id" => $formId
+    ":id" => $form_id
   ]);
 
   $form = $checkStmt->fetch(PDO::FETCH_ASSOC);
@@ -95,11 +95,11 @@ try {
     )
   ");
 
-  foreach ($answers as $fieldId => $value) {
+  foreach ($answers as $field_id => $value) {
 
     $stmt->execute([
-      ":form_id" => $formId,
-      ":field_id" => $fieldId,
+      ":form_id" => $form_id,
+      ":field_id" => $field_id,
       ":value" => $value
     ]);
   }

@@ -130,10 +130,39 @@ export default function CreatePage() {
   // ========================
   // 編集
   // ========================
-  const handleEdit = (item: Item) => {
-    setTitle(item.title);
-    setDescription(item.description);
-    setEditId(item.id);
+  const handleEdit = async (item: Item) => {
+    // setTitle(item.title);
+    // setDescription(item.description);
+    // setEditId(item.id);
+    try {
+      setError(null);
+
+      // detail.phpから詳細取得
+      const res = await fetch(
+        `${API_BASE}/detail.php?id=${item.id}`
+      );
+
+      const data = await res.json();
+
+      if (data.status === "error") {
+        throw new Error(data.message);
+      }
+
+      // フォーム反映
+      setTitle(data.title);
+      setDescription(data.description);
+      setFields(data.fields || []);
+      setEditId(data.id);
+
+    } catch (err: unknown) {
+      console.error(err);
+
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("編集データ取得エラー")
+      }
+    }
   };
 
   // ========================
@@ -196,13 +225,13 @@ export default function CreatePage() {
     });
   };
 
-  const handleChange = (id: string, value: string) => {
-    setFields((prev) =>
-      prev.map((f) =>
-        f.id === id ? { ...f, value } : f
-      )
-    );
-  };
+  // const handleChange = (id: string, value: string) => {
+  //   setFields((prev) =>
+  //     prev.map((f) =>
+  //       f.id === id ? { ...f, value } : f
+  //     )
+  //   );
+  // };
 
   // ====================
   // 並び替え（上）

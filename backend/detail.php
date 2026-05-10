@@ -48,7 +48,7 @@ try {
   // ================================
   $fields = json_decode($form["fields"], true);
 
-  if(!is_array($fields)) {
+  if(json_last_error() !== JSON_ERROR_NONE || !is_array($fields)) {
     $fields = [];
   }
 
