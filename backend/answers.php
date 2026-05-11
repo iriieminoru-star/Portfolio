@@ -5,9 +5,9 @@ header("Content-Type: application/json; charset=UTF-8");
 
 require_once(__DIR__ . "/db.php");
 
-$formId = $_GET["form_id"] ?? "";
+$form_id = $_GET["form_id"] ?? "";
 
-if (trim($formId) === "") {
+if (trim($form_id) === "") {
   echo json_encode([
     "status" => "error",
     "message" => "form_idなし"
@@ -21,10 +21,10 @@ try {
   $stmt =  $pdo->prepare("
   SELECT
     answers.id,
-    answers.from_id,
+    answers.form_id,
     answers.field_id,
     answers.value,
-    answers.created_at
+    answers.created_at,
     answers.title
   from answers
   INNER JOIN questions
@@ -34,7 +34,7 @@ try {
   ");
 
   $stmt->execute([
-    ":form_id" => $formId
+    ":form_id" => $form_id
   ]);
 
   $answers = $stmt->fetchAll(PDO::FETCH_ASSOC);

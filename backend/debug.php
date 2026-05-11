@@ -15,7 +15,7 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 try {
 
   $formStmt = $pdo->query("
-    SELECT *
+    SELECT rowid, *
     FROM forms
     ORDER BY rowid DESC
     LIMIT 100
@@ -23,14 +23,17 @@ try {
   $forms = $formStmt->fetchAll(PDO::FETCH_ASSOC);
 
   $answerStmt = $pdo->query("
-    SELECT *
+    SELECT rowid, *
     FROM answers
     ORDER BY rowid DESC
     LIMIT 300
   ");
   $answers = $answerStmt->fetchAll(PDO::FETCH_ASSOC);
+  echo "<pre>";
+  print_r($answers[0]);
+  echo "</pre>";
 
-} catch (Exception $e) {
+  } catch (Exception $e) {
   die("SQL Error: " . $e->getMessage());
 }
 
@@ -74,11 +77,11 @@ echo "</div>";
 echo "<div class='section'>";
 echo "<h2>FORMS</h2>";
 echo "<table>";
-echo "<tr><th>rowid</th><th>title</th><th>created_at</th></tr>";
+echo "<tr><th>id</th><th>title</th><th>created_at</th></tr>";
 
 foreach ($forms as $f) {
   echo "<tr>";
-  echo "<td>" . ($f['rowid'] ?? '') . "</td>";
+  echo "<td>" . htmlspecialchars($f['id'] ?? '') . "</td>";
   echo "<td>" . htmlspecialchars($f['title'] ?? '') . "</td>";
   echo "<td>" . ($f['created_at'] ?? '') . "</td>";
   echo "</tr>";
@@ -98,12 +101,12 @@ foreach ($answersByForm as $form_id => $list) {
   echo "<h3>form_id: {$form_id} (" . count($list) . ")</h3>";
 
   echo "<table>";
-  echo "<tr><th>rowid</th><th>answer</th><th>created_at</th></tr>";
+  echo "<tr><th>rowid</th><th>value</th><th>created_at</th></tr>";
 
   foreach ($list as $a) {
     echo "<tr>";
     echo "<td>" . ($a['rowid'] ?? '') . "</td>";
-    echo "<td>" . htmlspecialchars($a['answer'] ?? '') . "</td>";
+    echo "<td>" . htmlspecialchars($a['value'] ?? '') . "</td>";
     echo "<td>" . ($a['created_at'] ?? '') . "</td>";
     echo "</tr>";
   }
@@ -119,7 +122,7 @@ echo "</div>";
 echo "<div class='section'>";
 echo "<h2>Integrity Check</h2>";
 
-$form_ids = array_column($forms, 'rowid');
+$form_ids = array_column($forms, 'id');
 
 foreach ($answers as $a) {
   $fid = $a['form_id'] ?? null;

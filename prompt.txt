@@ -649,3 +649,385 @@ IDの意味が統一されていない
 ID体系の統一を最優先タスクとする
 変数はすべてsnace_caseとする
 まずは、変数名の統一から始める。
+
+
+2025/05/11 13:47
+# 🔁 no-code-pj 引継ぎプロンプト（2026/05/11 時点）
+
+## 📌 プロジェクト概要
+
+ポートフォリオ用 Web アプリ。
+
+目的：
+
+> 「1つの完成したWebアプリ作品」として見せられる状態にすること
+
+技術構成：
+
+- Frontend: Next.js App Router
+- Backend: PHP
+- DB: SQLite
+
+---
+
+# 🚫 重要方針（厳守）
+
+やらない：
+
+- 大規模リファクタ
+- DB再設計
+- React構造変更
+- API全面改修
+- フォルダ構造再設計
+
+やる：
+
+- 最小修正で整合性回復
+- 命名統一
+- 動作安定化
+- 「作品として見える状態」完成
+
+---
+
+# 📌 現在のフォルダ構成
+
+VSCodeでは compact folders 表示になっている。
+
+つまり：
+
+```txt
+app
+ ├─ answers/[id]
+ ├─ form/[id]
+ ├─ create/page.tsx
+ ├─ list/page.tsx
+```
+
+は正常。
+
+「answers [id] が1フォルダ」ではない。
+
+この確認を毎回やって時間を使っていたため、
+次回以降はこれを前提として扱うこと。
+
+---
+
+# 📌 現在の進捗
+
+## Backend
+
+### 完了
+
+- save.php
+- detail.php
+- submit.php
+- debug.php 基本動作
+- form_id 命名統一（一部）
+
+### submit.php
+
+現在：
+
+```php
+$form_id = $input["form_id"] ?? null;
+```
+
+に統一済み。
+
+frontend/form/[id]/page.tsx 側も：
+
+```ts
+form_id: id
+```
+
+へ修正済み。
+
+---
+
+# 📌 debug.php の現状
+
+## 現在の出力
+
+```txt
+DB Debug Summary
+Forms件数: 1
+Answers件数: 6
+
+FORMS
+id	title	created_at
+6a0070c9a2218	年齢確認
+
+ANSWERS (grouped by form_id)
+form_id: 6a0070c9a2218 (6)
+
+rowid	value	created_at
+男性	2026-05-11 03:07:24
+49	2026-05-11 03:07:24
+男性	2026-05-11 03:07:18
+53	2026-05-11 03:07:18
+```
+
+---
+
+# 📌 debug.php で判明している問題
+
+## 問題1
+
+Forms の created_at が表示されない。
+
+原因候補：
+
+- forms テーブルに created_at がない
+- NULL
+- INSERT時未設定
+
+まだ未解決。
+
+---
+
+## 問題2
+
+Answers の rowid が表示されない。
+
+現在：
+
+```php
+echo "<td>" . ($a['rowid'] ?? '') . "</td>";
+```
+
+になっている。
+
+しかし現在のDB設計では：
+
+```txt
+answers.id
+```
+
+を正式IDとして扱う方針。
+
+SQLite rowid を正式キーにしない。
+
+次回：
+
+```php
+$a['id']
+```
+
+へ変更予定。
+
+---
+
+# 📌 debug.php の現在重要状態
+
+value typo は修正済み。
+
+修正前：
+
+```php
+$a['valule']
+```
+
+修正後：
+
+```php
+$a['value']
+```
+
+---
+
+# 📌 answers.php の現状
+
+現在：
+
+```php
+$form_id = $_GET["form_id"] ?? "";
+```
+
+へ統一済み。
+
+ただしまだ未完成。
+
+現在のコード：
+
+```php
+SELECT
+  answers.id,
+  answers.form_id,
+  answers.field_id,
+  answers.value,
+  answers.created_at,
+  answers.title
+from answers
+INNER JOIN questions
+  ON answers.field_id = questions.id
+WHERE answers.form_id = :form_id
+ORDER BY answers.created_at DESC
+```
+
+---
+
+# 📌 answers.php の未解決問題
+
+## 問題1
+
+questions テーブルが存在しない可能性が高い。
+
+現在の設計では：
+
+- questions テーブルは未使用
+- fields は forms.fields(JSON)
+
+で保持している。
+
+つまり：
+
+```sql
+INNER JOIN questions
+```
+
+が破綻する可能性が高い。
+
+次回要確認。
+
+---
+
+## 問題2
+
+answers.title カラムも存在怪しい。
+
+answers テーブルには：
+
+```txt
+id
+form_id
+field_id
+value
+created_at
+```
+
+のみの可能性が高い。
+
+---
+
+# 📌 Frontend の現状
+
+## app/form/[id]/page.tsx
+
+重要修正済み：
+
+修正前：
+
+```ts
+formId: id
+```
+
+修正後：
+
+```ts
+form_id: id
+```
+
+submit.php と整合済み。
+
+---
+
+# 📌 現在動作確認済み
+
+## 成功している導線
+
+```txt
+/create
+ ↓
+フォーム作成
+ ↓
+/form/[id]
+ ↓
+入力
+ ↓
+submit.php
+ ↓
+SQLite保存
+ ↓
+debug.php確認
+```
+
+ここまでは成功。
+
+つまり：
+
+- create
+- form
+- submit
+- DB保存
+
+は動作している。
+
+---
+
+# 📌 現在のフェーズ
+
+構築フェーズ終了。
+
+現在：
+
+```txt
+整合性修正フェーズ
+```
+
+次：
+
+```txt
+作品完成フェーズ
+```
+
+---
+
+# 📌 次回最優先タスク
+
+## 1
+
+debug.php 修正完了
+
+- answers rowid → id
+- forms created_at 原因調査
+
+---
+
+## 2
+
+answers.php 完成
+
+- questions JOIN問題確認
+- title取得方法再設計（最小修正）
+
+---
+
+## 3
+
+app/answers/[id]/page.tsx 修正
+
+現在かなり壊れている。
+
+typo多数：
+
+- formatBalue
+- formatValue
+- case: "0";
+- return "value"
+
+など。
+
+---
+
+# 📌 重要思想
+
+今重要なのは：
+
+❌ 設計の美しさ  
+❌ 技術的正しさ
+
+ではなく：
+
+✅ 「作品として最後まで動くこと」
+
+AIはリファクタ提案を極力避けること。

@@ -25,16 +25,16 @@ export default function AnswersPage({
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [error, setError] = useState("");
 
-  function formatBalue(value: string) {
+  function formatValue(value: string) {
     switch (value) {
       case "-1":
         return "反対";
-      case: "0";
+      case "0":
         return "中立";
-      case: "1";
+      case "1":
         return "賛成";
       default:
-        return "value"
+        return value
     }
   }
 

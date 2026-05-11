@@ -130,7 +130,7 @@ export default function FormPage() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            formId: id,
+            form_id: id,
             answers: inputData,
           }),
         }

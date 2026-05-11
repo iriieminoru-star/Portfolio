@@ -43,4 +43,8 @@ next-env.d.ts
 # no-code-pj
 no-code-api/backend/data.json
 
+# backupFolder
 backup/
+
+# README
+README.md
