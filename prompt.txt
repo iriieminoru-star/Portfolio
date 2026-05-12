@@ -1102,3 +1102,124 @@ body: JSON.stringify({
   form_id: id,
   answers: inputData,
 })
+
+2026/05/12 21:30
+# no-code-pj 引き継ぎプロンプト（現状整理）
+
+このプロジェクトは「ノーコード風フォーム作成・回答収集アプリ」です。  
+Next.js（フロント）＋ PHP API ＋ SQLite で構成されています。
+
+---
+
+# ■ 現在の完成状況
+
+## ✔ 完成済み
+- フォーム作成画面（/create）
+- フォーム一覧画面（/forms）
+- トップページ（/）
+  - /create への導線あり
+  - /forms への導線あり
+- フォーム作成API（forms.php）
+- SQLiteデータベース（forms / answersテーブル）
+- debug.php によるDB確認機能
+
+---
+
+## ■ 未完成（重要）
+
+### ❌ 回答系機能
+- /answer/[formId]（回答入力画面）
+- /forms/[id]/answers（回答一覧画面）
+- 回答保存API（answers登録処理）
+
+---
+
+# ■ 技術構成
+
+## フロントエンド
+- Next.js App Router
+- React（use client）
+- fetchでPHP APIと通信
+
+## バックエンド
+- PHP API（forms.php / answers.php想定）
+- SQLite
+- JSONレスポンス
+
+---
+
+# ■ データ構造
+
+## forms
+- id
+- title
+- created_at
+
+## answers
+- id
+- form_id
+- data（JSON形式）
+- created_at
+
+---
+
+# ■ ルーティング構成
+
+/
+  トップページ（導線）
+
+/create
+  フォーム作成
+
+/forms
+  フォーム一覧
+
+/forms/[id]
+  フォーム詳細（未整備）
+
+/answer/[formId]
+  回答入力（未実装）
+
+/forms/[id]/answers
+  回答一覧（未実装）
+
+---
+
+# ■ アプリの目的
+
+1. フォームを作る
+2. URLを共有する
+3. 回答を集める
+4. 回答を閲覧する
+
+---
+
+# ■ 現在の状態の本質
+
+- フォーム作成 → 完成済み
+- フォーム一覧 → 完成済み
+- 回答機能 → 未完成（ここが本体）
+
+---
+
+# ■ 次にやるべき優先順位
+
+1. /answer/[formId] 作成（回答入力画面）
+2. answers保存API作成
+3. /forms/[id]/answers 作成（回答一覧）
+4. フォーム詳細ページ整備
+
+---
+
+# ■ 重要ポイント
+
+- DB設計はすでに回答前提で作られている
+- フロントとAPIは分離済み
+- 今は「入力・表示機能」が未完成
+
+---
+
+# ■ 一言まとめ
+
+フォーム作成部分は完成  
+これから「回答を扱うアプリ」に発展させる段階
