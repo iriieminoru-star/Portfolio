@@ -79,19 +79,19 @@ echo "<h2>FORMS</h2>";
 echo "<table>";
 echo "<tr><th>id</th><th>title</th><th>created_at</th></tr>";
 
-// foreach ($forms as $f) {
-//   echo "<tr>";
-//   echo "<td>" . htmlspecialchars($f['id'] ?? '') . "</td>";
-//   echo "<td>" . htmlspecialchars($f['title'] ?? '') . "</td>";
-//   echo "<td>" . ($f['created_at'] ?? '') . "</td>";
-//   echo "</tr>";
-// }
-echo "<pre>";
-print_r($forms);
-echo "</pre>";
+foreach ($forms as $f) {
+  echo "<tr>";
+  echo "<td>" . htmlspecialchars($f['id'] ?? '') . "</td>";
+  echo "<td>" . htmlspecialchars($f['title'] ?? '') . "</td>";
+  echo "<td>" . ($f['created_at'] ?? '') . "</td>";
+  echo "</tr>";
+}
+// echo "<pre>";
+// print_r($forms);
+// echo "</pre>";
 
-echo "</table>";
-echo "</div>";
+// echo "</table>";
+// echo "</div>";
 
 // ==============================
 // answers一覧（グルーピング）
