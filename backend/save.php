@@ -105,8 +105,20 @@ try {
       $newId = uniqid();
 
       $stmt = $pdo->prepare("
-        INSERT INTO forms (id, title, description, fields)
-        VALUES (:id, :title, :description, :fields)
+        INSERT INTO forms (
+          id,
+          title,
+          description,
+          fields,
+          created_at
+        )
+        VALUES (
+          :id,
+          :title,
+          :description,
+          :fields,
+          datetime('now')
+        )
       ");
 
       $stmt->execute([
