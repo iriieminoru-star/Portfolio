@@ -1031,3 +1031,74 @@ typo多数：
 ✅ 「作品として最後まで動くこと」
 
 AIはリファクタ提案を極力避けること。
+
+2026/05/12 15:07
+# 引継ぎプロンプト（2026-05-12時点）
+
+## プロジェクト概要
+Next.js + PHP + SQLite で構成された「ノーコードフォーム作成アプリ」。
+
+構成：
+- frontend: Next.js(App Router)
+- backend: PHP API
+- DB: SQLite
+
+目的：
+- フォーム作成
+- 回答送信
+- 回答一覧表示
+- CRUD学習
+- API連携学習
+
+---
+
+# 重要：フォルダ構成について
+
+現在の構成：
+
+Portfolio/no-code-pj/
+├─ app/
+│  ├─ create/page.tsx
+│  ├─ list/page.tsx
+│  ├─ form/[id]/page.tsx
+│  └─ answers/[id]/page.tsx
+├─ backend/
+│  ├─ save.php
+│  ├─ detail.php
+│  ├─ submit.php
+│  ├─ answers.php
+│  ├─ debug.php
+│  └─ db.php
+└─ frontend/
+
+※ frontend フォルダは legacy。
+※ 現在は app/ を Next.js の正式frontendとして使用中。
+※ app を frontend に移動しないこと。
+※ 毎回この確認をして時間を浪費しているため、この認識を固定する。
+
+---
+
+# 現在正常動作しているもの
+
+## create/page.tsx
+- フォーム作成可能
+- 保存可能
+- 一覧表示可能
+- 編集ボタンあり
+- 削除ボタンあり
+- 入力画面へ遷移可能
+
+## form/[id]/page.tsx
+- detail.phpからフォーム取得成功
+- 動的入力フォーム表示成功
+- submit.phpへのPOST成功
+- 回答保存成功
+
+重要修正：
+body送信を以下へ変更済み
+
+```ts
+body: JSON.stringify({
+  form_id: id,
+  answers: inputData,
+})
