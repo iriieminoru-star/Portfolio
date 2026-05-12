@@ -1,35 +1,63 @@
-// ===== START: トップページUI =====
-'use client'
-export default function Home() {
+"use client";
+
+import Link from "next/link";
+
+
+
+export default function HomePage() {
   return (
-    <main style={{ padding: "20px", fontFamily: "sans-serif" }}>
-      \
-      {/* タイトル */}
-      <h1>ノーコード業務ツール</h1>
+    <main
+      style={{
+        padding: 40,
+        fontFamily: "sans-serif",
+        maxWidth: 600,
+        margin: "0 auto",
+      }}
+    >
+      <h1 style={{ fontSize: 28, marginBottom: 10 }}>
+        No-Code Survey App
+      </h1>
 
-      {/* 説明 */}
-      <p>フォームを作成してデータ管理を行います</p>
+      <p style={{ color: "#666", marginBottom: 30 }}>
+        フォームを作成して、回答を収集・閲覧できるシンプルなアプリです。
+      </p>
 
-      {/* 区切り */}
-      <hr />
-
-      {/* アプリ一覧 */}
-      <h2>アプリ一覧</h2>
-
-      {/* 仮ボタン */}
-      <button
+      {/* メイン導線（これだけ押せばOK） */}
+      {/* ★追加：フォーム作成（メイン導線に昇格） */}
+      <Link
+        href="/create"
         style={{
-          padding: "10px 20px",
-          fontSize: "16px",
-          cursor: "pointer"
+          display: "block",
+          padding: 15,
+          background: "#2563eb",
+          color: "#fff",
+          textAlign: "center",
+          borderRadius: 8,
+          textDecoration: "none",
+          marginBottom: 10,
+          fontWeight: "bold",
         }}
-        onClick={() => alert("フォーム作成画面へ（未実装）")}
       >
-        フォーム作成
-      </button>
+        ＋ フォームを作成する
+      </Link>
+
+      {/* メイン導線 */}
+      <Link
+        href="/forms"
+        style={{
+          display: "block",
+          padding: 15,
+          background: "#000",
+          color: "#fff",
+          textAlign: "center",
+          borderRadius: 8,
+          textDecoration: "none",
+          marginBottom: 10,
+        }}
+      >
+        フォーム一覧を見る
+      </Link>
 
     </main>
   );
 }
-
-// ===== END: トップページUI =====

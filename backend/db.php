@@ -2,10 +2,15 @@
 
 function getDB() {
   $dbPath = __DIR__ . "/database.sqlite";
-
+  // echo $dbPath;
+  // exit;
   try {
     $pdo = new PDO("sqlite:" . $dbPath);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    $pdo->setAttribute(
+      PDO::ATTR_ERRMODE,
+      PDO::ERRMODE_EXCEPTION
+    );
 
   // ================================
     // フォーム定義テーブル
@@ -15,7 +20,8 @@ function getDB() {
         id TEXT PRIMARY KEY,
         title TEXT,
         description TEXT,
-        fields TEXT
+        fields TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     ");
 
