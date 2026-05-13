@@ -55,14 +55,19 @@ export default function CreatePage() {
   // 一覧取得
   // ========================
   useEffect(() => {
-    fetch(`${API_BASE}/list.php`)
+    fetch(`${API_BASE}/forms.php`)
       .then((res) => res.json())
-      .then((data: Item[]) => {
-        setList(data);
+      .then((data) => {
+        console.log(data);
+        // APIエラー
+        if (data.status === "error") {
+          throw new Error(data.message);
+        }
+        setList(data.forms);
       })
       .catch((err) => {
         console.error(err);
-        setError("一覧取得に失敗しました");
+        setError("一覧取得に失敗しました")
       });
   }, []);
 
@@ -103,9 +108,9 @@ export default function CreatePage() {
       }
 
       // 再取得
-      const listRes = await fetch(`${API_BASE}/list.php`);
-      const newList: Item[] = await listRes.json();
-      setList(newList);
+      const listRes = await fetch(`${API_BASE}/forms.php`);
+      const listData = await listRes.json();
+      setList(listData.forms);
 
       // 初期化
       setTitle("");
@@ -266,7 +271,7 @@ export default function CreatePage() {
     <main style={{ padding: "20px", fontFamily: "sans-serif" }}>
       <div style={{ marginBottom: "20px" }}>
         <Link href="/create">新規作成</Link>
-        <Link href="/list">一覧</Link>
+        <Link href="/forms">一覧</Link>
       </div>
 
       <h1>フォーム作成</h1>
@@ -330,8 +335,8 @@ export default function CreatePage() {
           <p>{item.title}</p>
           <button onClick={() => handleEdit(item)}>編集</button>
           <button onClick={() => handleDelete(item.id)}>削除</button>
-          <button onClick={() => router.push(`/form/${item.id}`)}>
-            入力
+          <button onClick={() => router.push(`/answer/${item.id}`)}>
+            回答
           </button>
         </div>
       ))}

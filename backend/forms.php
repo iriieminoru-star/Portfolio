@@ -15,10 +15,52 @@ require_once(__DIR__ . "/db.php");
 
 try {
 
-$pdo = getDB();
+  $pdo = getDB();
+
+    // ==============================
+  // 単体取得モード
+  // GET forms.php?id=xxx
+  // ==============================
+  if (isset($_GET["id"])) {
+    $id = $_GET["id"];
+  
+
+    $stmt = $pdo->prepare("
+      SELECT
+        id,
+        title,
+        fields,
+        created_at
+      FROM forms
+      WHERE id = :id
+    ");
+
+    $stmt->bindValue(":id", $id, PDO::PARAM_STR);
+    $stmt->execute();
+    $form = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // フォームが存在しない
+    if (!$form) {
+      echo json_encode([
+        "status" => "error",
+        "message" => "Form not found"
+      ]);
+      exit;
+    }
+
+    // fieldsをJSON→配列へ
+    $form["fields"] = json_decode($form["fields"], true);
+    
+    echo json_encode([
+      "status" => "success",
+      "form" => $form
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+  }
 
   // ==============================
-  // フォーム一覧取得
+  // 一覧取得モード
+  // GET forms.php
   // ==============================
   $stmt = $pdo->prepare("
     SELECT
@@ -30,20 +72,17 @@ $pdo = getDB();
   ");
 
   $stmt->execute();
-
   $forms = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-  // ==============================
+    // ==============================
   // 成功レスポンス
   // ==============================
   echo json_encode([
     "status" => "success",
     "forms" => $forms
   ], JSON_UNESCAPED_UNICODE);
-  
-  } catch (Exception $e) {
-
-  // ==============================
+} catch (Exception $e) {
+    // ==============================
   // エラー
   // ==============================
   echo json_encode([

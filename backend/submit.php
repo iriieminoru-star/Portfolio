@@ -38,7 +38,7 @@ $answers = $input["answers"] ?? null;
 if (
   !$form_id ||
   !is_array($answers) ||
-  count($answers) === 0
+  empty($answers)
 ) {
   echo json_encode([
     "status" => "error",
@@ -50,6 +50,9 @@ if (
 try {
 
   $pdo = getDB();
+
+  // UTF-8対策
+  $pdo->exec("SET NAMES utf8mb4");
 
   // ==============================
   // フォーム存在確認
@@ -96,6 +99,11 @@ try {
   ");
 
   foreach ($answers as $field_id => $value) {
+    if (!is_string($field_id)) continue;
+
+    if (is_array($value)) {
+      $value = json_encode($value, JSON_UNESCAPED_UNICODE);
+    }
 
     $stmt->execute([
       ":form_id" => $form_id,
@@ -109,11 +117,12 @@ try {
   $pdo->commit();
 
     // ==============================
-    // 成功レスポンス
+    // transaction確定（成功レスポンス）
     // ==============================
   echo json_encode([
     "status" => "success"
   ]);
+  exit;
 
 } catch (Exception $e) {
 
