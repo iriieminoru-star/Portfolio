@@ -115,12 +115,32 @@ export default function FormPage() {
   };
 
   // ===============
-  // 送信
+  // 送信（DEBUG強化版）
   // ===============
   const handleSubmit = async () => {
+    console.log("================================");
+    console.log("🚀 SUBMIT START");
+    console.log("================================");
+
     try {
       setSubmitting(true);
       setError(null);
+
+      // ========================
+      // 送信データ確認
+      // ========================
+      const payload = {
+        form_id: id,
+        answers: inputData,
+      };
+
+      console.log("📦 PAYLOAD:");
+      console.log(JSON.stringify(payload, null, 2));
+
+      // ========================
+      // API呼び出し
+      // ========================
+      console.log("🌐 CALL API: submit.php");
 
       const res = await fetch(
         "http://localhost/no-code-api/backend/submit.php",
@@ -129,22 +149,51 @@ export default function FormPage() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            form_id: id,
-            answers: inputData,
-          }),
+          body: JSON.stringify(payload),
         }
       );
 
-      const data: SubmitResponse = await res.json();
+      // ========================
+      // レスポンス（生データ）
+      // ========================
+      const text = await res.text();
+
+      console.log("📩 RAW RESPONSE:");
+      console.log(text);
+
+      let data: SubmitResponse;
+
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        throw new Error("JSONパース失敗: " + text);
+      }
+
+      console.log("📩 PARSED RESPONSE:");
+      console.log(data);
+
+      // ========================
+      // エラーハンドリング
+      // ========================
+      if (!res.ok) {
+        throw new Error(`HTTP ERROR: ${res.status}`);
+      }
 
       if (data.status === "error") {
         throw new Error(data.message);
       }
 
+      // ========================
+      // 成功
+      // ========================
+      console.log("✅ SUBMIT SUCCESS");
       alert("送信成功");
 
     } catch (err: unknown) {
+      console.log("================================");
+      console.log("❌ SUBMIT ERROR");
+      console.log("================================");
+
       console.error(err);
 
       if (err instanceof Error) {
@@ -152,11 +201,16 @@ export default function FormPage() {
       } else {
         setError("通信エラー");
       }
+
     } finally {
+      console.log("================================");
+      console.log("🏁 SUBMIT END");
+      console.log("================================");
+
       setSubmitting(false);
     }
   };
-
+  
   // ===============
   // 表示
   // ===============

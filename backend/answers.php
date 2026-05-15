@@ -33,6 +33,7 @@ if (trim($form_id) === "") {
 try {
 
   $pdo = getDB();
+  error_log("submit.php CALLED");
 
   // ==============================
   // フォーム取得

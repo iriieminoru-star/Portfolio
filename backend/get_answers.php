@@ -2,7 +2,7 @@
 // ==============================
 // エラー表示（開発用）
 // ==============================
-ini_set('display_errors',1);
+ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 // ==============================
@@ -13,19 +13,19 @@ header("Content-Type: application/json");
 header("Access-Control-Allow-Methods: GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 
-// プリフライト対策
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS' ) {
-    http_response_code(200);
+// プリフライト対応
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+  http_response_code(200);
+  exit;
 }
 
 // ==============================
-// DB接続(SQLite)
+// DB接続
 // ==============================
 require_once(__DIR__ . "/db.php");
 
 try {
-    $pdo = getDB();
-    //$pdo->exec("SET NAMES utf8mb4");
+  $pdo = getDB();
 
   // ==============================
   // form_id取得
@@ -34,34 +34,38 @@ try {
 
   if (!$form_id) {
     echo json_encode([
-        "status" => "error",
-        "message" => "form_idが必要です"
+      "status" => "error",
+      "message" => "form_idが必要です"
     ]);
     exit;
   }
+
   // ==============================
-  // フォーム存在確認
+  // フォーム情報取得（任意）
   // ==============================
   $formStmt = $pdo->prepare("
-  SELECT id, title, description
-  FROM forms
-  WHERE id = :id
+    SELECT id, title, description
+    FROM forms
+    WHERE id = :id
   ");
 
   $formStmt->execute([
     ":id" => $form_id
   ]);
+
   $form = $formStmt->fetch(PDO::FETCH_ASSOC);
 
+  // ❗ フォームチェックは軽くする（エラーにしない）
   if (!$form) {
-    echo json_encode([
-      "status" => "error",
-      "message" => "フォームが存在しません"
-    ]);
-    exit;
+    $form = [
+      "id" => $form_id,
+      "title" => "（削除済みフォーム）",
+      "description" => ""
+    ];
   }
+
   // ==============================
-  // 回答取得（生データ）
+  // 回答取得
   // ==============================
   $stmt = $pdo->prepare("
     SELECT
@@ -71,7 +75,7 @@ try {
       created_at
     FROM answers
     WHERE form_id = :form_id
-    ORDER BY created_t DESC
+    ORDER BY created_at DESC
   ");
 
   $stmt->execute([
@@ -80,8 +84,8 @@ try {
 
   $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // ==============================
-  // グルーピング（1送信 = 1回答セット）
+  // ==============================
+  // グルーピング（送信単位）
   // ==============================
   $grouped = [];
 
@@ -89,14 +93,14 @@ try {
 
     $time = $row["created_at"];
 
-    // 送信単位でまとめる
     if (!isset($grouped[$time])) {
       $grouped[$time] = [
         "created_at" => $time,
         "answers" => []
       ];
     }
-    $grouped[$time]["answers"][$row["field_id"]] = $row["vlue"];
+
+    $grouped[$time]["answers"][$row["field_id"]] = $row["value"];
   }
 
   // ==============================
@@ -107,13 +111,11 @@ try {
     "form" => $form,
     "responses" => array_values($grouped)
   ]);
-  exit;
 
 } catch (Throwable $e) {
+
   echo json_encode([
     "status" => "error",
     "message" => $e->getMessage()
   ]);
-
-  exit;
 }

@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
+import { use } from "react";
 import { useEffect, useState } from "react";
-
 
 type Answer = {
   id: number;
@@ -17,79 +17,49 @@ const API_BASE = "http://localhost/no-code-api/backend";
 export default function AnswersPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+
+  // ★ Promiseを展開
+  const { id } = use(params);
 
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [error, setError] = useState("");
 
-  function formatValue(value: string) {
-    switch (value) {
-      case "-1":
-        return "反対";
-
-      case "0":
-        return "中立";
-
-      case "1":
-        return "賛成";
-
-      default:
-        return value
-    }
-  }
-
-  // useEffect(() => {
-
-  //   fetch(
-  //     `${API_BASE}/answers.php?form_id=${params.id}`
-  //   )
-  //     .then((res) => res.json())
-  //     .then((data) => {
-
-  //       console.log(data);
-
-  //       if (data.status === "error") {
-  //         throw new Error(data.message);
-  //       }
-
-  //       setAnswers(data.answers);
-
-  //     })
-  //     .catch((err) => {
-  //       console.error("回答取得エラー", err);
-
-  //       setError("回答取得失敗")
-
-  //     });
-
-  // }, [params.id]);
-
-  // debug
   useEffect(() => {
-    fetch(`${API_BASE}/answers.php?form_id=${params.id}`)
+
+    console.log("id =", id);
+
+    fetch(`${API_BASE}/answers.php?form_id=${id}`)
       .then(async (res) => {
+
         const text = await res.text();
 
-        console.log("STATUS:", res.status);
-        console.log("RAW RESPONSE:", text);
+        console.log("RAW =", text);
 
         return JSON.parse(text);
+
       })
       .then((data) => {
-        console.log("PARSED:", data);
+
+        console.log("DATA =", data);
 
         if (data.status === "error") {
           throw new Error(data.message);
         }
 
         setAnswers(data.answers);
+
       })
       .catch((err) => {
-        console.error("回答取得エラー詳細:", err);
-        setError(err?.message ?? "回答取得失敗");
+
+        console.error(err);
+
+        setError(err.message);
+
       });
-  }, [params.id]);
+
+  }, [id]);
 
   return (
     <main style={{ padding: "20px" }}>
@@ -116,15 +86,12 @@ export default function AnswersPage({
             padding: "10px",
           }}
         >
-          <p>ID: {answer.id}</p>
-
-          <p>フォームID: {answer.form_id}</p>
 
           <p>質問: {answer.title}</p>
 
-          <p>回答: {formatValue(answer.value)}</p>
+          <p>回答: {answer.value}</p>
 
-          <p>作成日時: {answer.created_at}</p>
+          <p>日時: {answer.created_at}</p>
 
         </div>
 

@@ -72,44 +72,92 @@ export default function CreatePage() {
   }, []);
 
   // ========================
-  // 保存 / 更新
+  // 保存 / 更新（DEBUG強化版）
   // ========================
   const handleSubmit = async () => {
+    console.log("================================");
+    console.log("🚀 SAVE START");
+    console.log("================================");
+
     try {
       setLoading(true);
       setError(null);
 
+      // ========================
+      // 入力チェック
+      // ========================
       if (!title.trim()) {
-        setError("フォーム名は必須です")
+        setError("フォーム名は必須です");
         return;
       }
+
+      // ========================
+      // 送信データ（ここが超重要）
+      // ========================
+      const payload = {
+        id: editId,
+        title,
+        description,
+        fields,
+      };
+
+      console.log("📦 PAYLOAD:");
+      console.log(JSON.stringify(payload, null, 2));
+
+      // ========================
+      // API呼び出し
+      // ========================
+      console.log("🌐 CALL API: save.php");
 
       const res = await fetch(`${API_BASE}/save.php`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          id: editId,
-          title,
-          description,
-          fields,
-        }),
+        body: JSON.stringify(payload),
       });
 
-      if (!res.ok) {
-        throw new Error("保存に失敗しました");
+      // ========================
+      // レスポンス生データ確認
+      // ========================
+      const text = await res.text();
+
+      console.log("📩 RAW RESPONSE:");
+      console.log(text);
+
+      let data: SaveResponse;
+
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        throw new Error("JSONパース失敗: " + text);
       }
 
-      const data: SaveResponse = await res.json();
+      console.log("📩 PARSED RESPONSE:");
+      console.log(data);
+
+      // ========================
+      // エラーハンドリング
+      // ========================
+      if (!res.ok) {
+        throw new Error(`HTTP ERROR: ${res.status}`);
+      }
 
       if (data.status === "error") {
         throw new Error(data.message);
       }
 
+      // ========================
+      // 成功処理
+      // ========================
+      console.log("✅ SAVE SUCCESS");
+
       // 再取得
+      console.log("🔄 REFRESH LIST");
+
       const listRes = await fetch(`${API_BASE}/forms.php`);
       const listData = await listRes.json();
+
       setList(listData.forms);
 
       // 初期化
@@ -121,13 +169,23 @@ export default function CreatePage() {
       ]);
 
     } catch (err: unknown) {
+      console.log("================================");
+      console.log("❌ SAVE ERROR");
+      console.log("================================");
+
       console.error(err);
+
       if (err instanceof Error) {
         setError(err.message);
       } else {
         setError("通信エラー");
       }
+
     } finally {
+      console.log("================================");
+      console.log("🏁 SAVE END");
+      console.log("================================");
+
       setLoading(false);
     }
   };

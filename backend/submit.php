@@ -50,9 +50,10 @@ if (
 try {
 
   $pdo = getDB();
+  error_log("submit.php CALLED");
 
   // UTF-8対策
-  $pdo->exec("SET NAMES utf8mb4");
+  //$pdo->exec("SET NAMES utf8mb4");
 
   // ==============================
   // フォーム存在確認
