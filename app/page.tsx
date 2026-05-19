@@ -472,8 +472,34 @@ export default function HomePage() {
 
           {/* RPA */}
 
-          <Link
-            href="/rpa"
+          <button
+            onClick={async () => {
+
+              try {
+
+                const res = await fetch(
+                  "/api/rpa/record",
+                  {
+                    method: "POST",
+                  }
+                );
+
+                const data = await res.json();
+
+                console.log(
+                  "RPA RECORD START =",
+                  data
+                );
+
+              } catch (err) {
+
+                console.error(
+                  "RPA RECORD ERROR =",
+                  err
+                );
+              }
+
+            }}
             style={{
               display: "block",
               padding: 16,
@@ -483,10 +509,13 @@ export default function HomePage() {
               borderRadius: 10,
               textDecoration: "none",
               fontWeight: "bold",
+              border: "none",
+              cursor: "pointer",
+              width: "100%",
             }}
           >
-            ▶ RPA管理画面
-          </Link>
+            ▶ RPA記録開始
+          </button>
 
         </div>
       )}
