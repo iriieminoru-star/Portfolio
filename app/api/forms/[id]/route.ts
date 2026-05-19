@@ -2,10 +2,21 @@ import { NextResponse } from "next/server";
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = params.id;
+
+    // =========================
+    // id取得
+    // =========================
+
+    const { id } = await params;
+
+    console.log("DELETE ID =", id);
+
+    // =========================
+    // PHP API呼び出し
+    // =========================
 
     const res = await fetch(
       "http://localhost/no-code-api/backend/delete_form.php",
@@ -20,14 +31,30 @@ export async function DELETE(
       }
     );
 
-    const data = await res.json();
+    // =========================
+    // 生レスポンス確認
+    // =========================
+
+    const text = await res.text();
+
+    console.log("DELETE RAW =", text);
+
+    // =========================
+    // JSON変換
+    // =========================
+
+    const data = JSON.parse(text);
 
     return NextResponse.json(data);
-  } catch (err) {
+
+  } catch (err: any) {
+
+    console.error(err);
+
     return NextResponse.json(
       {
         status: "error",
-        message: "delete failed",
+        message: err.message,
       },
       { status: 500 }
     );

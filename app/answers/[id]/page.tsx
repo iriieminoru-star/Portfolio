@@ -93,6 +93,58 @@ export default function AnswersPage({
 
           <p>日時: {answer.created_at}</p>
 
+      <button
+        onClick={async () => {
+
+          const ok = confirm(
+            "回答を削除しますか？"
+          );
+
+          if (!ok) return;
+
+          const res = await fetch(
+            "/api/answers/delete",
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+
+              body: JSON.stringify({
+                id: answer.id,
+              }),
+            }
+          );
+
+          const data =
+            await res.json();
+
+          if (data.status === "success") {
+
+            setAnswers((prev) =>
+              prev.filter(
+                (a) => a.id !== answer.id
+              )
+            );
+
+          } else {
+
+            alert(data.message);
+
+          }
+
+        }}
+        style={{
+          marginTop: 10,
+          color: "red",
+          fontWeight: "bold",
+        }}
+      >
+        削除
+      </button>
+
         </div>
 
       ))}

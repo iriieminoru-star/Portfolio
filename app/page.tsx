@@ -295,7 +295,7 @@ export default function HomePage() {
       <h1
         style={{
           fontSize: 32,
-          marginBottom: 10,
+          // marginBottom: 10,
         }}
       >
         No-Code RPA Platform
@@ -577,16 +577,17 @@ export default function HomePage() {
               <div
                 style={{
                   marginBottom: 10,
+                  display: "flex",
+                  gap: 16,
+                  alignItems: "center",
+                  flexWrap: "wrap",
                 }}
               >
-
                 {/* 回答 */}
-
                 <Link
                   href={`/form/${form.id}`}
                   style={{
                     color: "#16a34a",
-                    marginRight: 15,
                     fontWeight: "bold",
                   }}
                 >
@@ -594,12 +595,10 @@ export default function HomePage() {
                 </Link>
 
                 {/* 回答一覧 */}
-
                 <Link
                   href={`/answers/${form.id}`}
                   style={{
                     color: "#2563eb",
-                    marginRight: 15,
                     fontWeight: "bold",
                   }}
                 >
@@ -607,11 +606,8 @@ export default function HomePage() {
                 </Link>
 
                 {/* CSV */}
-
                 <a
-                  href={
-                    `http://localhost/no-code-api/backend/export_csv.php?form_id=${form.id}`
-                  }
+                  href={`http://localhost/no-code-api/backend/export_csv.php?form_id=${form.id}`}
                   style={{
                     color: "#f59e0b",
                     fontWeight: "bold",
@@ -626,23 +622,24 @@ export default function HomePage() {
                     const ok = confirm("削除しますか？");
                     if (!ok) return;
 
-                    console.log("①削除ボタン押された");
-
                     const res = await fetch(`/api/forms/${form.id}`, {
                       method: "DELETE",
                     });
 
-                    console.log("②APIレスポンス受け取り");
-
                     const text = await res.text();
-                    console.log("③生レスポンス:", text);
-
-                    alert(text);
+                    console.log(text);
+                  }}
+                  style={{
+                    color: "red",
+                    fontWeight: "bold",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: 0,
                   }}
                 >
                   削除
                 </button>
-
               </div>
 
               {/* 作成日 */}

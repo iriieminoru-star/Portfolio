@@ -391,11 +391,9 @@ export default function CreatePage() {
       {list.map((item) => (
         <div key={item.id}>
           <p>{item.title}</p>
-          <button onClick={() => handleEdit(item)}>編集</button>
+          <button onClick={() => handleEdit(item)} style={{marginRight: 12}}>編集</button>
+          <button onClick={() => router.push(`/answer/${item.id}`)} style={{marginRight: 12}}>回答</button>
           <button onClick={() => handleDelete(item.id)}>削除</button>
-          <button onClick={() => router.push(`/answer/${item.id}`)}>
-            回答
-          </button>
         </div>
       ))}
     </main>
