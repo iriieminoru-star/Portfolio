@@ -15,7 +15,7 @@ import "reactflow/dist/style.css";
 // 型
 // =====================
 type Form = {
-  id: string;
+  id: string; // ★ID統一（string）
   title: string;
   description: string;
 };
@@ -26,6 +26,7 @@ type GetFormsResponse = {
 };
 
 type FormNodeData = {
+  id: string; // ★追加（UI側でもID保持）
   label: string;
   description: string;
 };
@@ -36,24 +37,19 @@ const nodeTypes = {};
 const edgeTypes = {};
 
 export default function GraphPage() {
-  // nodes
   const [nodes, setNodes, onNodesChange] =
     useNodesState<FormNodeData>([]);
 
-  // edges
   const [edges, setEdges, onEdgesChange] =
     useEdgesState<Edge>([]);
 
-  // selected
   const [selectedNode, setSelectedNode] =
     useState<FormNode | null>(null);
 
-  // connect
   const onConnect = (connection: Connection) => {
     setEdges((eds) => addEdge(connection, eds));
   };
 
-  // click node
   const onNodeClick = (
     _: React.MouseEvent,
     node: FormNode
@@ -85,7 +81,7 @@ export default function GraphPage() {
   };
 
   // =====================
-  // 説明変更（修正済み）
+  // 説明変更
   // =====================
   const handleDescriptionChange = (value: string) => {
     if (!selectedNode) return;
@@ -107,7 +103,9 @@ export default function GraphPage() {
     );
   };
 
+  // =====================
   // fetch
+  // =====================
   useEffect(() => {
     const fetchForms = async () => {
       try {
@@ -122,13 +120,14 @@ export default function GraphPage() {
 
         const mappedNodes: FormNode[] =
           data.forms.map((form, index) => ({
-            id: form.id,
+            id: form.id, // ★そのままID使用（重要）
             type: "default",
             position: {
               x: 200 + index * 250,
               y: 100,
             },
             data: {
+              id: form.id, // ★dataにもID保持
               label: form.title,
               description: form.description,
             },

@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-
-// ===== 型定義 =====
 type Item = {
   id: string;
   title: string;
@@ -14,14 +12,14 @@ type Item = {
 
 type SaveResponse =
   | {
-    status: "success";
-    title: string;
-    description: string;
-  }
+      status: "success";
+      title: string;
+      description: string;
+    }
   | {
-    status: "error";
-    message: string;
-  };
+      status: "error";
+      message: string;
+    };
 
 type FieldType = "text" | "number";
 
@@ -30,15 +28,13 @@ type Field = {
   label: string;
   type: FieldType;
   value: string;
-}
+};
 
 const API_BASE = "http://localhost/no-code-api/backend";
 
-// ===== START =====
 export default function CreatePage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-
   const [list, setList] = useState<Item[]>([]);
   const [editId, setEditId] = useState<string | null>(null);
 
@@ -58,56 +54,35 @@ export default function CreatePage() {
     fetch(`${API_BASE}/forms.php`)
       .then((res) => res.json())
       .then((data) => {
-        console.log(data);
-        // APIエラー
         if (data.status === "error") {
           throw new Error(data.message);
         }
         setList(data.forms);
       })
       .catch((err) => {
-        console.error(err);
-        setError("一覧取得に失敗しました")
+        setError("一覧取得に失敗しました");
       });
   }, []);
 
   // ========================
-  // 保存 / 更新（DEBUG強化版）
+  // 保存 / 更新
   // ========================
   const handleSubmit = async () => {
-    console.log("================================");
-    console.log("🚀 SAVE START");
-    console.log("================================");
-
     try {
       setLoading(true);
       setError(null);
 
-      // ========================
-      // 入力チェック
-      // ========================
       if (!title.trim()) {
         setError("フォーム名は必須です");
         return;
       }
 
-      // ========================
-      // 送信データ（ここが超重要）
-      // ========================
       const payload = {
         id: editId,
         title,
         description,
         fields,
       };
-
-      console.log("📦 PAYLOAD:");
-      console.log(JSON.stringify(payload, null, 2));
-
-      // ========================
-      // API呼び出し
-      // ========================
-      console.log("🌐 CALL API: save.php");
 
       const res = await fetch(`${API_BASE}/save.php`, {
         method: "POST",
@@ -117,75 +92,26 @@ export default function CreatePage() {
         body: JSON.stringify(payload),
       });
 
-      // ========================
-      // レスポンス生データ確認
-      // ========================
       const text = await res.text();
+      const data: SaveResponse = JSON.parse(text);
 
-      console.log("📩 RAW RESPONSE:");
-      console.log(text);
-
-      let data: SaveResponse;
-
-      try {
-        data = JSON.parse(text);
-      } catch (e) {
-        throw new Error("JSONパース失敗: " + text);
-      }
-
-      console.log("📩 PARSED RESPONSE:");
-      console.log(data);
-
-      // ========================
-      // エラーハンドリング
-      // ========================
-      if (!res.ok) {
-        throw new Error(`HTTP ERROR: ${res.status}`);
-      }
-
-      if (data.status === "error") {
-        throw new Error(data.message);
-      }
-
-      // ========================
-      // 成功処理
-      // ========================
-      console.log("✅ SAVE SUCCESS");
-
-      // 再取得
-      console.log("🔄 REFRESH LIST");
+      if (!res.ok) throw new Error(`HTTP ERROR: ${res.status}`);
+      if (data.status === "error") throw new Error(data.message);
 
       const listRes = await fetch(`${API_BASE}/forms.php`);
       const listData = await listRes.json();
 
       setList(listData.forms);
 
-      // 初期化
       setTitle("");
       setDescription("");
       setEditId(null);
       setFields([
         { id: crypto.randomUUID(), label: "", type: "text", value: "" },
       ]);
-
-    } catch (err: unknown) {
-      console.log("================================");
-      console.log("❌ SAVE ERROR");
-      console.log("================================");
-
-      console.error(err);
-
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("通信エラー");
-      }
-
+    } catch (err: any) {
+      setError(err.message || "通信エラー");
     } finally {
-      console.log("================================");
-      console.log("🏁 SAVE END");
-      console.log("================================");
-
       setLoading(false);
     }
   };
@@ -194,13 +120,9 @@ export default function CreatePage() {
   // 編集
   // ========================
   const handleEdit = async (item: Item) => {
-    // setTitle(item.title);
-    // setDescription(item.description);
-    // setEditId(item.id);
     try {
       setError(null);
 
-      // detail.phpから詳細取得
       const res = await fetch(
         `${API_BASE}/detail.php?id=${item.id}`
       );
@@ -211,20 +133,12 @@ export default function CreatePage() {
         throw new Error(data.message);
       }
 
-      // フォーム反映
       setTitle(data.title);
       setDescription(data.description);
       setFields(data.fields || []);
       setEditId(data.id);
-
-    } catch (err: unknown) {
-      console.error(err);
-
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("編集データ取得エラー")
-      }
+    } catch (err: any) {
+      setError(err.message || "編集データ取得エラー");
     }
   };
 
@@ -241,19 +155,11 @@ export default function CreatePage() {
         body: JSON.stringify({ id }),
       });
 
-      if (!res.ok) {
-        throw new Error("削除に失敗しました");
-      }
+      if (!res.ok) throw new Error("削除に失敗しました");
 
       setList((prev) => prev.filter((item) => item.id !== id));
-
-    } catch (err: unknown) {
-      console.error(err);
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("削除エラー");
-      }
+    } catch (err: any) {
+      setError(err.message || "削除エラー");
     }
   };
 
@@ -267,38 +173,20 @@ export default function CreatePage() {
     ]);
   };
 
-  const updateField = (
-    id: string,
-    key: keyof Field,
-    value: string
-  ) => {
+  const updateField = (id: string, key: keyof Field, value: string) => {
     setFields((prev) =>
-      prev.map((f) =>
-        f.id === id ? { ...f, [key]: value } : f
-      )
+      prev.map((f) => (f.id === id ? { ...f, [key]: value } : f))
     );
   };
 
   const removeField = (id: string) => {
     if (!confirm("この項目を削除しますか？")) return;
 
-    setFields((prev) => {
-      if (prev.length === 1) return prev;
-      return prev.filter((f) => f.id !== id);
-    });
+    setFields((prev) =>
+      prev.length === 1 ? prev : prev.filter((f) => f.id !== id)
+    );
   };
 
-  // const handleChange = (id: string, value: string) => {
-  //   setFields((prev) =>
-  //     prev.map((f) =>
-  //       f.id === id ? { ...f, value } : f
-  //     )
-  //   );
-  // };
-
-  // ====================
-  // 並び替え（上）
-  // ========================
   const moveUp = (index: number) => {
     if (index === 0) return;
     setFields((prev) => {
@@ -309,9 +197,6 @@ export default function CreatePage() {
     });
   };
 
-  // ====================
-  // 並び替え(下)
-  // ====================
   const moveDown = (index: number) => {
     if (index === fields.length - 1) return;
     setFields((prev) => {
@@ -322,44 +207,65 @@ export default function CreatePage() {
     });
   };
 
-  // ====================
-  // 表示
-  // ====================
+  // ========================
+  // UI
+  // ========================
   return (
-    <main style={{ padding: "20px", fontFamily: "sans-serif" }}>
-      <div style={{ marginBottom: "20px" }}>
-        <Link href="/create">新規作成</Link>
-        <Link href="/forms">一覧</Link>
+    <main
+      data-rpa-id="page-create-root"
+      style={{ padding: 20, fontFamily: "sans-serif" }}
+    >
+      <div data-rpa-id="page-create-nav">
+        <Link href="/create" data-rpa-id="page-create-nav-create">
+          新規作成
+        </Link>
+
+        <Link href="/forms" data-rpa-id="page-create-nav-list">
+          一覧
+        </Link>
       </div>
 
-      <h1>フォーム作成</h1>
+      <h1 data-rpa-id="page-create-title">フォーム作成</h1>
 
-      {/* エラー表示 */}
-      {error && <p style={{ color: "red" }}> {error} </p>}
+      {error && (
+        <p data-rpa-id="page-create-error" style={{ color: "red" }}>
+          {error}
+        </p>
+      )}
 
       <input
+        data-rpa-id="page-create-title-input"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="フォーム名"
       />
 
       <textarea
+        data-rpa-id="page-create-description-input"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         placeholder="説明"
       />
 
-      <button onClick={handleSubmit} disabled={loading}>
+      <button
+        data-rpa-id="page-create-submit-button"
+        onClick={handleSubmit}
+        disabled={loading}
+      >
         {loading ? "保存中..." : editId ? "更新" : "保存"}
       </button>
 
       <hr />
 
-      <h2>項目設定</h2>
+      <h2 data-rpa-id="page-create-fields-title">項目設定</h2>
 
       {fields.map((field, index) => (
-        <div key={field.id}>
+        <div
+          key={field.id}
+          data-rpa-id={`page-create-field-${field.id}`}
+        >
           <input
+            data-rpa-id={`page-create-field-${field.id}-label`}
             value={field.label}
             onChange={(e) =>
               updateField(field.id, "label", e.target.value)
@@ -367,6 +273,7 @@ export default function CreatePage() {
           />
 
           <select
+            data-rpa-id={`page-create-field-${field.id}-type`}
             value={field.type}
             onChange={(e) =>
               updateField(field.id, "type", e.target.value)
@@ -376,24 +283,69 @@ export default function CreatePage() {
             <option value="number">数値</option>
           </select>
 
-          <button onClick={() => moveUp(index)}>↑</button>
-          <button onClick={() => moveDown(index)}>↓</button>
-          <button onClick={() => removeField(field.id)}>削除</button>
+          <button
+            data-rpa-id={`page-create-field-${field.id}-up`}
+            onClick={() => moveUp(index)}
+          >
+            ↑
+          </button>
+
+          <button
+            data-rpa-id={`page-create-field-${field.id}-down`}
+            onClick={() => moveDown(index)}
+          >
+            ↓
+          </button>
+
+          <button
+            data-rpa-id={`page-create-field-${field.id}-delete`}
+            onClick={() => removeField(field.id)}
+          >
+            削除
+          </button>
         </div>
       ))}
 
-      <button onClick={addField}>＋追加</button>
+      <button
+        data-rpa-id="page-create-field-add"
+        onClick={addField}
+      >
+        ＋追加
+      </button>
 
       <hr />
 
-      <h2>一覧</h2>
+      <h2 data-rpa-id="page-create-list-title">一覧</h2>
 
       {list.map((item) => (
-        <div key={item.id}>
-          <p>{item.title}</p>
-          <button onClick={() => handleEdit(item)} style={{marginRight: 12}}>編集</button>
-          <button onClick={() => router.push(`/answer/${item.id}`)} style={{marginRight: 12}}>回答</button>
-          <button onClick={() => handleDelete(item.id)}>削除</button>
+        <div
+          key={item.id}
+          data-rpa-id={`page-create-item-${item.id}`}
+        >
+          <p data-rpa-id={`page-create-item-${item.id}-title`}>
+            {item.title}
+          </p>
+
+          <button
+            data-rpa-id={`page-create-item-${item.id}-edit`}
+            onClick={() => handleEdit(item)}
+          >
+            編集
+          </button>
+
+          <button
+            data-rpa-id={`page-create-item-${item.id}-answer`}
+            onClick={() => router.push(`/answer/${item.id}`)}
+          >
+            回答
+          </button>
+
+          <button
+            data-rpa-id={`page-create-item-${item.id}-delete`}
+            onClick={() => handleDelete(item.id)}
+          >
+            削除
+          </button>
         </div>
       ))}
     </main>

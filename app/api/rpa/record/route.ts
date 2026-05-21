@@ -1,22 +1,26 @@
 import { NextResponse } from "next/server";
 
-export async function POST() {
-  const scenario = [
-    {
-      type: "navigate",
-      url: "http://localhost:3000",
-    },
-    {
-      type: "click",
-      selector: "#example",
-    },
-  ];
+let isRecording = false;
+let steps: any[] = [];
 
-  // TODO: DB保存
-  console.log("RECORDED:", scenario);
+export async function POST() {
+  isRecording = true;
+  steps = [];
+
+  console.log("[RPA] recording started");
 
   return NextResponse.json({
-    status: "success",
-    scenario,
+    recording: true,
+  });
+}
+
+export async function DELETE() {
+  isRecording = false;
+
+  console.log("[RPA] recording stopped");
+
+  return NextResponse.json({
+    recording: false,
+    scenario: steps,
   });
 }

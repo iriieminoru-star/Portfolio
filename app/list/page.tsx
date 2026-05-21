@@ -2,289 +2,342 @@
 
 import { useState, useEffect } from "react";
 
-// 一覧データ１件分の型
 type FormItem = {
-    id: number;
-    title: string;
-    description: string;
+  id: number;
+  title: string;
+  description: string;
 };
 
-// 削除APIのレスポンス型
 type DeleteResponse =
-    | { status: "success" }
-    | { status: "error"; message: string };
+  | { status: "success" }
+  | { status: "error"; message: string };
 
 type UpdateResponse =
-    | { status: "success" }
-    | { status: "error"; message: string };
+  | { status: "success" }
+  | { status: "error"; message: string };
 
 export default function ListPage() {
-    // 一覧データを管理するstate
-    const [data, setData] = useState<FormItem[]>([]);
-    // データ取得中かどうかを管理するstate
-    // 初回表示時にAPIからデータを取るため、その間は「読み込み中」を表示する
-    const [loading, setLoading] = useState<boolean>(true);
-    // 編集中のIDとフォームのstate
-    const [editId, setEditId] = useState<number | null>(null);
-    // 編集用：フォーム名
-    const [title, setTitle] = useState("");
-    // 編集用：説明
-    const [description, setDescription] = useState("");
-    // エラーメッセージ
-    const [error, setError] = useState<string | null>(null);
-    // 成功メッセージ
-    const [success, setSuccess] = useState<string | null>(null);
+  const [data, setData] = useState<FormItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [editId, setEditId] = useState<number | null>(null);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
-    // ★成功メッセージを3秒後に自動で消す
-    useEffect(() => {
-        if (!success) return;
+  // =========================
+  // success auto hide
+  // =========================
+  useEffect(() => {
+    if (!success) return;
 
-        const timer = setTimeout(() => {
-            setSuccess(null);
-        }, 3000);
+    const timer = setTimeout(() => {
+      setSuccess(null);
+    }, 3000);
 
-        return () => clearTimeout(timer);
-    }, [success]);
+    return () => clearTimeout(timer);
+  }, [success]);
 
+  // =========================
+  // fetch list
+  // =========================
+  useEffect(() => {
+    fetch("http://localhost/no-code-api/backend/list.php")
+      .then((res) => res.json())
+      .then((json: FormItem[]) => {
+        setData(json);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
 
-    // 初回表示時に一覧データを取得する処理
-    // 第二引数 [] により「最初の1回だけ」実行される
-    useEffect(() => {
-        fetch("http://localhost/no-code-api/backend/list.php")
-            .then((res) => res.json())
-            .then((json: FormItem[]) => {
-                setData(json);          // データをstateにセット
-                setLoading(false);      // ローディング終了
-            })
-            .catch((err) => {
-                console.error("取得エラー：", err);
-                setLoading(false);
-            });
-    }, []);
+  // =========================
+  // delete
+  // =========================
+  const handleDelete = async (id: number) => {
+    if (!confirm("本当に削除しますか？")) return;
 
-    // 削除処理（指定のIDデータを削除する）
-    const handleDelete = async (id: number) => {
-        console.log("DELETE ID:", id);
-        // 確認ダイアログ
-        if (!confirm("本当に削除しますか？")) return;
-
-        try {
-            // APIに削除リクエストを送る
-            const res = await fetch("http://localhost/no-code-api/backend/delete.php", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ id })
-            });
-
-            const data: DeleteResponse = await res.json();
-
-            if (data.status === "success") {
-                // 画面から削除（再度APIを呼ばず、stateを直接更新することで高速化）
-                // filterで指定ID以外を残すことで削除を実現
-                setData((prev) => prev.filter((item) => item.id !== id));
-                // alert("削除しました");
-                setSuccess("削除しました");
-                setError(null);
-
-            } else {
-                // alert(data.message);
-                setError(data.message);
-                setSuccess(null);
-            }
-        } catch (err) {
-            console.error("通信エラー：", err);
-            setError("通信エラーが発生しました");
-            setSuccess(null);
+    try {
+      const res = await fetch(
+        "http://localhost/no-code-api/backend/delete.php",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ id }),
         }
-    };
+      );
 
-    const handleUpdate = async (id: number) => {
-        try {
-            if (!title.trim()) {
-                // alert("フォーム名は必須です");
-                setError("フォーム名は必須です");
-                setSuccess(null);
-                return;
-            }
-            const res = await fetch("http://localhost/no-code-api/backend/update.php", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    id,
-                    title,
-                    description
-                }),
-            });
+      const data: DeleteResponse = await res.json();
 
-            const data: UpdateResponse = await res.json();
+      if (data.status === "success") {
+        setData((prev) =>
+          prev.filter((item) => item.id !== id)
+        );
 
-            if (data.status === "success") {
-                // 更新成功したら、stateも更新して画面に反映させる
-                setData((prev) =>
-                    prev.map((item) =>
-                        item.id === id
-                            ? { ...item, title, description }
-                            : item
-                    )
-                );
-                setEditId(null); // 編集モード終了
+        setSuccess("削除しました");
+        setError(null);
+      } else {
+        setError(data.message);
+        setSuccess(null);
+      }
+    } catch {
+      setError("通信エラーが発生しました");
+      setSuccess(null);
+    }
+  };
 
-                // alert("更新しました");
-                setSuccess("更新しました");
-                setError(null);
+  // =========================
+  // update
+  // =========================
+  const handleUpdate = async (id: number) => {
+    try {
+      if (!title.trim()) {
+        setError("フォーム名は必須です");
+        return;
+      }
 
-            } else {
-                setError(data.message);
-                setSuccess(null);
-            }
-        } catch (err) {
-            console.error(err);
-            setError("通信エラーが発生しました");
-            setSuccess(null);
+      const res = await fetch(
+        "http://localhost/no-code-api/backend/update.php",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id,
+            title,
+            description,
+          }),
         }
-    };
+      );
 
-    return (
-        <div style={{ padding: "20px" }}>
-            <h1>一覧画面</h1>
-            {/* エラー表示 */}
-            {error && (
-                <div style={{
-                    backgroundColor: "#ffdddd",
-                    color: "#900",
-                    padding: "10px",
-                    marginBottom: "10px",
-                    borderRadius: "5px",
-                }}>
-                    {error}
-                </div>
-            )}
-            {/* 成功メッセージ */}
-            {success && (
-                <div style={{
-                    backgroundColor: "#ddffdd",
-                    color: "#060",
-                    padding: "10px",
-                    marginBottom: "10px",
-                    borderRadius: "5px",
-                }}>
-                    {success}
-                </div>
-            )}
+      const data: UpdateResponse = await res.json();
 
-            {/*
-         CSVダウンロードボタン
-         PHPのexport.phpを直接呼び出し、CSVファイルをダウンロードする
-        */}
-            <button
-                onClick={() => {
-                    window.location.href = "http://localhost/no-code-api/backend/export.php";
-                }}
-                style={{
-                    padding: "10px 20px",
-                    backgroundColor: "#4CAF50",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "5px",
-                    cursor: "pointer"
-                }}
-            >
-                CSVダウンロード
-            </button>
+      if (data.status === "success") {
+        setData((prev) =>
+          prev.map((item) =>
+            item.id === id
+              ? { ...item, title, description }
+              : item
+          )
+        );
 
-            {/* ローディング中 */}
-            {loading && <p>読み込み中...</p>}
+        setEditId(null);
+        setSuccess("更新しました");
+        setError(null);
+      } else {
+        setError(data.message);
+        setSuccess(null);
+      }
+    } catch {
+      setError("通信エラーが発生しました");
+      setSuccess(null);
+    }
+  };
 
-            {/* データなし */}
-            {!loading && data.length === 0 && <p>データがありません。</p>}
+  // =========================
+  // UI
+  // =========================
+  return (
+    <div
+      data-rpa-id="page-list-root"
+      style={{ padding: "20px" }}
+    >
+      <h1 data-rpa-id="page-list-title">
+        一覧画面
+      </h1>
 
-            {/* データあり */}
-            {!loading && data.length > 0 && (
-                <table border={1}
-                    cellPadding={10}
-                    style={{
-                        borderCollapse: "collapse",
-                        width: "100%",
-                        tableLayout: "fixed",
-                    }}
-                >
-                    <thead>
-                        <tr>
-                            <th style={{ width: "30%" }}>フォーム名</th>
-                            <th style={{ width: "40%" }}>説明</th>
-                            <th style={{ width: "15%" }}>削除</th>
-                            <th style={{ width: "15%" }}>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {data.map((item) => (
-                            <tr key={item.id}>
-                                <td>
-                                    {editId === item.id ? (
-                                        <input
-                                            value={title}
-                                            onChange={(e) => setTitle(e.target.value)}
-                                            style={{ width: "90%" }}
-                                        />
-                                    ) : (
-                                        item.title
-                                    )}
-                                </td>
-                                <td>
-                                    {editId === item.id ? (
-                                        <textarea
-                                            value={description}
-                                            onChange={(e) => setDescription(e.target.value)}
-                                            style={{
-                                                width: "95%",
-                                                minHeight: "60px",
-                                                padding: "5px",
-                                            }}
-                                        />
-                                    ) : (
-                                        item.description
-                                    )}
-                                </td>
-                                <td style={{ textAlign: "center" }}>
-                                    {/* 削除ボタン */}
-                                    <button onClick={() => handleDelete(item.id)}>
-                                        削除
-                                    </button>
-                                </td>
-                                <td style={{ textAlign: "center" }}>
-                                    {/* 編集ボタン */}
-                                    {editId === item.id ? (
-                                        <>
-                                            <button onClick={() => handleUpdate(item.id)}>
-                                                保存
-                                            </button>
-                                            <button onClick={() => setEditId(null)}>
-                                                キャンセル
-                                            </button>
-                                        </>
-                                    ) : (
-                                        <button
-                                            onClick={() => {
-                                                setEditId(item.id);
-                                                setTitle(item.title);
-                                                setDescription(item.description);
-                                                // 編集モードに入るとき、フォームに現在の値をセットする
-                                                setError(null);
-                                                setSuccess(null);
-                                            }}>
-                                            編集
-                                        </button>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            )}
+      {/* ERROR */}
+      {error && (
+        <div
+          data-rpa-id="page-list-error"
+          style={{
+            backgroundColor: "#ffdddd",
+            color: "#900",
+            padding: "10px",
+            marginBottom: "10px",
+            borderRadius: "5px",
+          }}
+        >
+          {error}
         </div>
-    );
+      )}
+
+      {/* SUCCESS */}
+      {success && (
+        <div
+          data-rpa-id="page-list-success"
+          style={{
+            backgroundColor: "#ddffdd",
+            color: "#060",
+            padding: "10px",
+            marginBottom: "10px",
+            borderRadius: "5px",
+          }}
+        >
+          {success}
+        </div>
+      )}
+
+      {/* CSV */}
+      <button
+        data-rpa-id="page-list-csv-download"
+        onClick={() => {
+          window.location.href =
+            "http://localhost/no-code-api/backend/export.php";
+        }}
+        style={{
+          padding: "10px 20px",
+          backgroundColor: "#4CAF50",
+          color: "white",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+        }}
+      >
+        CSVダウンロード
+      </button>
+
+      {/* LOADING */}
+      {loading && (
+        <p data-rpa-id="page-list-loading">
+          読み込み中...
+        </p>
+      )}
+
+      {/* EMPTY */}
+      {!loading && data.length === 0 && (
+        <p data-rpa-id="page-list-empty">
+          データがありません。
+        </p>
+      )}
+
+      {/* TABLE */}
+      {!loading && data.length > 0 && (
+        <table
+          data-rpa-id="page-list-table"
+          border={1}
+          cellPadding={10}
+          style={{
+            borderCollapse: "collapse",
+            width: "100%",
+            tableLayout: "fixed",
+          }}
+        >
+          <thead data-rpa-id="page-list-table-head">
+            <tr>
+              <th>フォーム名</th>
+              <th>説明</th>
+              <th>削除</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {data.map((item) => (
+              <tr
+                key={item.id}
+                data-rpa-id={`page-list-row-${item.id}`}
+              >
+                {/* TITLE */}
+                <td>
+                  {editId === item.id ? (
+                    <input
+                      data-rpa-id={`page-list-row-${item.id}-title-input`}
+                      value={title}
+                      onChange={(e) =>
+                        setTitle(e.target.value)
+                      }
+                      style={{ width: "90%" }}
+                    />
+                  ) : (
+                    <span
+                      data-rpa-id={`page-list-row-${item.id}-title`}
+                    >
+                      {item.title}
+                    </span>
+                  )}
+                </td>
+
+                {/* DESCRIPTION */}
+                <td>
+                  {editId === item.id ? (
+                    <textarea
+                      data-rpa-id={`page-list-row-${item.id}-desc-input`}
+                      value={description}
+                      onChange={(e) =>
+                        setDescription(e.target.value)
+                      }
+                      style={{
+                        width: "95%",
+                        minHeight: "60px",
+                        padding: "5px",
+                      }}
+                    />
+                  ) : (
+                    <span
+                      data-rpa-id={`page-list-row-${item.id}-desc`}
+                    >
+                      {item.description}
+                    </span>
+                  )}
+                </td>
+
+                {/* DELETE */}
+                <td style={{ textAlign: "center" }}>
+                  <button
+                    data-rpa-id={`page-list-row-${item.id}-delete`}
+                    onClick={() => handleDelete(item.id)}
+                  >
+                    削除
+                  </button>
+                </td>
+
+                {/* ACTION */}
+                <td style={{ textAlign: "center" }}>
+                  {editId === item.id ? (
+                    <>
+                      <button
+                        data-rpa-id={`page-list-row-${item.id}-save`}
+                        onClick={() =>
+                          handleUpdate(item.id)
+                        }
+                      >
+                        保存
+                      </button>
+
+                      <button
+                        data-rpa-id={`page-list-row-${item.id}-cancel`}
+                        onClick={() => setEditId(null)}
+                      >
+                        キャンセル
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      data-rpa-id={`page-list-row-${item.id}-edit`}
+                      onClick={() => {
+                        setEditId(item.id);
+                        setTitle(item.title);
+                        setDescription(item.description);
+                        setError(null);
+                        setSuccess(null);
+                      }}
+                    >
+                      編集
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
 }

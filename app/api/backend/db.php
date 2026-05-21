@@ -36,7 +36,7 @@ function getDB() {
     ");
 
     // =================================
-    // ノーコードフロー保存（既存）
+    // ノーコードフロー保存
     // =================================
     $pdo->exec("
       CREATE TABLE IF NOT EXISTS flows (
@@ -47,33 +47,18 @@ function getDB() {
       )
     ");
 
-    // =================================
-    // 🆕 RPAシナリオ本体（追加）
+        // =================================
+    // RPAシナリオ保存
     // =================================
     $pdo->exec("
-      CREATE TABLE IF NOT EXISTS rpa_scenarios (
+      CREATE TABLE IF NOT EXISTS scenarios (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
+        code TEXT NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     ");
-
-    // =================================
-    // 🆕 RPAステップ（超重要・永続化の本体）
-    // =================================
-    $pdo->exec("
-      CREATE TABLE IF NOT EXISTS rpa_steps (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        scenario_id TEXT NOT NULL,
-        step_index INTEGER,
-        type TEXT NOT NULL,
-        selector TEXT,
-        value TEXT,
-        url TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    ");
-
+    
     return $pdo;
 
   } catch (Exception $e) {
