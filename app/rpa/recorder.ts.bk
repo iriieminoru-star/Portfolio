@@ -93,13 +93,7 @@ export function getSteps() {
 function handleClick(e: MouseEvent) {
   if (!isRecording) return;
 
-  // [修正] e.target が子要素（テキスト等）の場合、
-  // id / name / data-testid / data-rpa-id を持つ最近傍の祖先要素に遡る。
-  // 見つからなければ元の target をそのまま使う。
-  const raw = e.target as HTMLElement;
-  const target =
-    (raw.closest("[id],[name],[data-testid],[data-rpa-id]") as HTMLElement) ??
-    raw;
+  const target = e.target as HTMLElement;
 
   const ignoreTags = ["html", "body", "div", "span", "p"];
   if (ignoreTags.includes(target.tagName.toLowerCase())) return;
@@ -115,7 +109,7 @@ function handleClick(e: MouseEvent) {
   steps.push(step);
   saveSteps();
 
-  console.log("[RPA] click recorded:", step.selector);
+  console.log("[RPA] click recorded");
 }
 
 // =========================
@@ -150,13 +144,9 @@ function handleInput(e: Event) {
 
 // =========================
 // selector
-// [追加] data-rpa-id も候補に追加（id の次に優先）
 // =========================
 function getSelector(el: HTMLElement): string {
   if (el.id) return `#${el.id}`;
-
-  const rpaId = el.getAttribute("data-rpa-id");
-  if (rpaId) return `[data-rpa-id="${rpaId}"]`;
 
   const name = el.getAttribute("name");
   if (name) return `[name="${name}"]`;
